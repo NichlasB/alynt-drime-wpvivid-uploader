@@ -1,0 +1,21 @@
+{
+  "name": "alynt/alynt-drime-wpvivid-uploader",
+  "description": "Upload completed WPvivid local backup files to Drime.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {},
+  "requireDev": {
+    "wp-coding-standards/wpcs": "^3.1",
+    "phpcompatibility/phpcompatibility-wp": "^2.1",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+  },
+  "scripts": {
+    "lint": "php ./vendor/bin/phpcs",
+    "lint:fix": "php ./vendor/bin/phpcbf"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}

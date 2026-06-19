@@ -1,0 +1,60 @@
+.alynt-drime-wpvivid-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 12px 0 24px;
+}
+
+.alynt-drime-wpvivid-actions form {
+	margin: 0;
+}
+
+.alynt-drime-wpvivid-status-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 12px;
+	max-width: 640px;
+}
+
+.alynt-drime-wpvivid-status-box {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	padding: 14px 16px;
+}
+
+.alynt-drime-wpvivid-status-box strong {
+	display: block;
+	font-size: 24px;
+	line-height: 1.2;
+}
+
+.alynt-drime-wpvivid-status-box span {
+	color: #50575e;
+}
+
+.alynt-drime-wpvivid-empty {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	max-width: 640px;
+	padding: 16px;
+}
+
+.alynt-drime-wpvivid-diagnostics-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 12px 0;
+}
+
+.alynt-drime-wpvivid-diagnostics-actions form {
+	margin: 0;
+}
+
+.alynt-drime-wpvivid-health {
+	max-width: 760px;
+	margin: 12px 0 20px;
+}
+
+.alynt-drime-wpvivid-health th {
+	width: 220px;
+}

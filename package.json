@@ -1,0 +1,11 @@
+{
+  "name": "alynt-drime-wpvivid-uploader",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Upload completed WPvivid local backup files to Drime.",
+  "scripts": {
+    "lint": "php ./vendor/bin/phpcs",
+    "lint:fix": "php ./vendor/bin/phpcbf",
+    "test": "php -l alynt-drime-wpvivid-uploader.php"
+  }
+}
