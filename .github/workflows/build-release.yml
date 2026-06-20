@@ -15,25 +15,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.1'
-          tools: composer:v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '20'
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
-
-      - name: Install npm dependencies and build
-        run: |
-          npm install
-          npm run build
-
       - name: Create plugin zip
         run: |
           PLUGIN_SLUG="alynt-drime-wpvivid-uploader"
@@ -43,20 +24,36 @@ jobs:
 
           rsync -av --exclude='.git' \
                     --exclude='.github' \
+                    --exclude='build' \
                     --exclude='node_modules' \
+                    --exclude='vendor' \
                     --exclude='tests' \
                     --exclude='scripts' \
+                    --exclude='docs' \
+                    --exclude='coverage' \
+                    --exclude='assets/src' \
+                    --exclude='assets/dist' \
                     --exclude='.gitignore' \
                     --exclude='.gitattributes' \
                     --exclude='.phpcs.xml' \
                     --exclude='.phpcs.xml.dist' \
                     --exclude='.editorconfig' \
+                    --exclude='.windsurfrules' \
                     --exclude='phpunit.xml' \
+                    --exclude='phpunit.xml.dist' \
                     --exclude='composer.json' \
                     --exclude='composer.lock' \
+                    --exclude='composer.phar' \
                     --exclude='package.json' \
                     --exclude='package-lock.json' \
+                    --exclude='deploy.sh' \
+                    --exclude='deploy.example.sh' \
+                    --exclude='session-context.tmp.md' \
+                    --exclude='session-handoff.tmp.md' \
+                    --exclude='README.md' \
+                    --exclude='CHANGELOG.md' \
                     --exclude='*.map' \
+                    --exclude='RELEASE-*.md' \
                     ./ build/${PLUGIN_SLUG}/
 
           cd build

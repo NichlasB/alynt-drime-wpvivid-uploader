@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-06-20
+
+### Added
+
+- Added `GitHub Plugin URI` metadata so Alynt Plugin Updater can detect the public GitHub release source.
+
+### Changed
+
+- Refreshed the GitHub Actions release packaging workflow to package only runtime plugin files and avoid development-only Composer/npm artifacts.
+
 ## [0.1.0] - 2026-06-20
 
 ### Added

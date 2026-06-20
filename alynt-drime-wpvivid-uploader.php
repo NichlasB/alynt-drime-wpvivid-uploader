@@ -3,11 +3,12 @@
  * Plugin Name:       Alynt Drime WPvivid Uploader
  * Plugin URI:        https://alynt.com/
  * Description:       Upload completed WPvivid local backup archives to Drime.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Alynt
  * Author URI:        https://alynt.com/
+ * GitHub Plugin URI: NichlasB/alynt-drime-wpvivid-uploader
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       alynt-drime-wpvivid-uploader
@@ -21,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.1.0' );
+define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.1.1' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP', '6.0' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP', '7.4' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_FILE', __FILE__ );

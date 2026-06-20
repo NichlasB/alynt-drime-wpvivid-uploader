@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,14 +40,20 @@ Diagnostics are disabled by default. When enabled, diagnostics are redacted and 
 
 = Does this expose custom developer hooks? =
 
-No public custom actions or filters are exposed in version 0.1.0.
+No public custom actions or filters are exposed in version 0.1.1.
 
 == Changelog ==
+
+= 0.1.1 =
+* Added Alynt Plugin Updater compatibility metadata and refreshed release packaging workflow for public GitHub release updates.
 
 = 0.1.0 =
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.1.1 =
+Adds GitHub release update compatibility.
 
 = 0.1.0 =
 Initial development release.

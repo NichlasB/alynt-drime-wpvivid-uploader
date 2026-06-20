@@ -32,6 +32,10 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 
 For development and release validation, use the packaged zip and the documented LocalWP confirmation gate before touching `plugin-tester.local`.
 
+## Updates
+
+The plugin includes `GitHub Plugin URI: NichlasB/alynt-drime-wpvivid-uploader` for Alynt Plugin Updater compatibility. Updates are distributed from public GitHub releases using the attached WordPress-installable zip asset.
+
 ## Configuration
 
 The settings screen controls:
@@ -65,7 +69,7 @@ The scanner waits until files are old enough and their size is stable across sca
 
 ### Does this expose developer hooks?
 
-No public custom actions or filters are exposed in `0.1.0`. See [docs/HOOKS.md](docs/HOOKS.md).
+No public custom actions or filters are exposed in `0.1.1`. See [docs/HOOKS.md](docs/HOOKS.md).
 
 ## Changelog
 
