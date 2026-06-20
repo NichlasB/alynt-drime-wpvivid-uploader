@@ -28,6 +28,8 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_test_connection', __( 'Test Drime Connection', 'alynt-drime-wpvivid-uploader' ) ); ?>
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_scan_now', __( 'Scan Backup Folder', 'alynt-drime-wpvivid-uploader' ) ); ?>
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_upload_next', __( 'Upload Next Queued Backup', 'alynt-drime-wpvivid-uploader' ) ); ?>
+			<?php $this->render_action_button( 'alynt_drime_wpvivid_preview_remote_retention', __( 'Preview Remote Retention', 'alynt-drime-wpvivid-uploader' ) ); ?>
+			<?php $this->render_action_button( 'alynt_drime_wpvivid_run_remote_retention', __( 'Run Remote Retention', 'alynt-drime-wpvivid-uploader' ), __( 'Move eligible Drime files uploaded by this plugin to trash?', 'alynt-drime-wpvivid-uploader' ) ); ?>
 		</div>
 		<?php
 	}
@@ -76,6 +78,47 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 		<div class="alynt-drime-wpvivid-active-actions">
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_clear_active_upload', __( 'Clear Active Upload', 'alynt-drime-wpvivid-uploader' ), __( 'Clear active upload state? The current multipart upload may need to restart.', 'alynt-drime-wpvivid-uploader' ) ); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Renders remote retention status.
+	 *
+	 * @param array<string,mixed>            $settings Settings.
+	 * @param array<int,array<string,mixed>> $candidates Candidates.
+	 * @return void
+	 */
+	private function render_remote_retention_status( array $settings, array $candidates ) {
+		?>
+		<h3><?php esc_html_e( 'Remote Retention', 'alynt-drime-wpvivid-uploader' ); ?></h3>
+		<table class="widefat striped alynt-drime-wpvivid-retention">
+			<caption class="screen-reader-text"><?php esc_html_e( 'Remote retention summary', 'alynt-drime-wpvivid-uploader' ); ?></caption>
+			<tbody>
+				<tr><th scope="row"><?php esc_html_e( 'Enabled', 'alynt-drime-wpvivid-uploader' ); ?></th><td><?php echo ! empty( $settings['remote_retention_enabled'] ) ? esc_html__( 'Yes', 'alynt-drime-wpvivid-uploader' ) : esc_html__( 'No', 'alynt-drime-wpvivid-uploader' ); ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'Retention Age', 'alynt-drime-wpvivid-uploader' ); ?></th><td><?php echo esc_html( number_format_i18n( absint( $settings['remote_retention_days'] ) ) ); ?> <?php esc_html_e( 'days', 'alynt-drime-wpvivid-uploader' ); ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'Eligible Files', 'alynt-drime-wpvivid-uploader' ); ?></th><td><?php echo esc_html( number_format_i18n( count( $candidates ) ) ); ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'Cleanup Mode', 'alynt-drime-wpvivid-uploader' ); ?></th><td><?php esc_html_e( 'Move to Drime trash only', 'alynt-drime-wpvivid-uploader' ); ?></td></tr>
+			</tbody>
+		</table>
+		<?php if ( ! empty( $candidates ) ) : ?>
+			<table class="widefat striped alynt-drime-wpvivid-retention-candidates">
+				<caption class="screen-reader-text"><?php esc_html_e( 'Remote retention candidates', 'alynt-drime-wpvivid-uploader' ); ?></caption>
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( 'File', 'alynt-drime-wpvivid-uploader' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Age', 'alynt-drime-wpvivid-uploader' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $candidates as $candidate ) : ?>
+						<tr>
+							<td><?php echo esc_html( isset( $candidate['remote_name'] ) ? (string) $candidate['remote_name'] : '' ); ?></td>
+							<td><?php echo esc_html( number_format_i18n( isset( $candidate['age_days'] ) ? absint( $candidate['age_days'] ) : 0 ) ); ?> <?php esc_html_e( 'days', 'alynt-drime-wpvivid-uploader' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
 		<?php
 	}
 

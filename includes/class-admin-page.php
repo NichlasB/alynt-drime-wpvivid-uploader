@@ -102,6 +102,7 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 		$active        = $this->plugin->queue()->get_active();
 		$uploaded      = $this->plugin->registry()->get_uploaded();
 		$failed        = $this->plugin->registry()->get_failed();
+		$retention     = $this->plugin->retention()->preview();
 		$events        = $this->plugin->logger()->get_events();
 		$diagnostics   = $this->plugin->logger()->stats();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Notice rendering is read-only.
@@ -117,6 +118,7 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 			$this->render_manual_actions();
 			$this->render_status_summary( $queue, $uploaded, $failed );
 			$this->render_active_upload_state( $active );
+			$this->render_remote_retention_status( $settings, $retention );
 			$this->render_diagnostics_panel( $settings, $diagnostics );
 			$this->render_recent_events( $events );
 			?>

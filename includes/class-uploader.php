@@ -330,9 +330,25 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 			return false === $remote_name ? new WP_Error( 'alynt_drime_duplicate_skipped', __( 'A file with this name already exists in Drime, so the upload was skipped.', 'alynt-drime-wpvivid-uploader' ) ) : $remote_name;
 		}
 
-		return $size < Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE
+		return $size < Alynt_Drime_WPvivid_Uploader_Drime_Client::MIN_MULTIPART_CHUNK_SIZE
 			? $this->simple_upload_item( $path, $remote_name, (int) $size )
 			: $this->multipart_upload( $path, $remote_name, (int) $size, $item );
+	}
+
+	/**
+	 * Returns the configured multipart chunk size in bytes.
+	 *
+	 * @return int
+	 */
+	private function multipart_chunk_size() {
+		$settings = $this->settings->get();
+		$mb       = isset( $settings['multipart_chunk_size_mb'] ) ? absint( $settings['multipart_chunk_size_mb'] ) : Alynt_Drime_WPvivid_Uploader_Drime_Client::DEFAULT_MULTIPART_SIZE_MB;
+		$bytes    = $mb * 1048576;
+
+		return max(
+			Alynt_Drime_WPvivid_Uploader_Drime_Client::MIN_MULTIPART_CHUNK_SIZE,
+			min( Alynt_Drime_WPvivid_Uploader_Drime_Client::MAX_MULTIPART_CHUNK_SIZE, $bytes )
+		);
 	}
 
 	/**

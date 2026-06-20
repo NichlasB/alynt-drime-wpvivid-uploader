@@ -127,6 +127,10 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 	 * @return void
 	 */
 	private function render_upload_behavior_settings( array $settings ) {
+		$min_chunk_size_mb     = Alynt_Drime_WPvivid_Uploader_Settings::MIN_MULTIPART_CHUNK_SIZE_MB;
+		$max_chunk_size_mb     = Alynt_Drime_WPvivid_Uploader_Settings::MAX_MULTIPART_CHUNK_SIZE_MB;
+		$default_chunk_size_mb = Alynt_Drime_WPvivid_Uploader_Settings::DEFAULT_MULTIPART_CHUNK_SIZE_MB;
+
 		?>
 		<tr>
 			<th scope="row"><label for="alynt-duplicate-mode"><?php esc_html_e( 'Duplicate Handling', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
@@ -150,10 +154,39 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 			</td>
 		</tr>
 		<tr>
+			<th scope="row"><label for="alynt-multipart-chunk-size"><?php esc_html_e( 'Multipart Chunk Size', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<input id="alynt-multipart-chunk-size" name="alynt_drime_wpvivid_settings[multipart_chunk_size_mb]" type="number" min="<?php echo esc_attr( (string) $min_chunk_size_mb ); ?>" max="<?php echo esc_attr( (string) $max_chunk_size_mb ); ?>" step="1" value="<?php echo esc_attr( (string) $settings['multipart_chunk_size_mb'] ); ?>" aria-describedby="alynt-multipart-chunk-size-description">
+				<p id="alynt-multipart-chunk-size-description" class="description">
+					<?php
+					printf(
+						/* translators: %d: recommended multipart chunk size in MB. */
+						esc_html__( 'Set the size of each Drime multipart upload part. %d MB is recommended for large backups.', 'alynt-drime-wpvivid-uploader' ),
+						(int) $default_chunk_size_mb
+					);
+					?>
+				</p>
+			</td>
+		</tr>
+		<tr>
 			<th scope="row"><label for="alynt-delete-local"><?php esc_html_e( 'Delete Local Files', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 			<td>
 				<label><input id="alynt-delete-local" name="alynt_drime_wpvivid_settings[delete_local_after_upload]" type="checkbox" value="1" <?php checked( ! empty( $settings['delete_local_after_upload'] ) ); ?> aria-describedby="alynt-delete-local-description"> <?php esc_html_e( 'Delete local backup files after confirmed Drime upload.', 'alynt-drime-wpvivid-uploader' ); ?></label>
 				<p id="alynt-delete-local-description" class="description"><?php esc_html_e( 'Keep this off until end-to-end testing is complete.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-remote-retention-enabled"><?php esc_html_e( 'Remote Retention', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<label><input id="alynt-remote-retention-enabled" name="alynt_drime_wpvivid_settings[remote_retention_enabled]" type="checkbox" value="1" <?php checked( ! empty( $settings['remote_retention_enabled'] ) ); ?> aria-describedby="alynt-remote-retention-description"> <?php esc_html_e( 'Allow manual cleanup of old Drime files uploaded by this plugin.', 'alynt-drime-wpvivid-uploader' ); ?></label>
+				<p id="alynt-remote-retention-description" class="description"><?php esc_html_e( 'Cleanup moves eligible Drime files to trash only. It does not permanently delete remote files or delete local backup files.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-remote-retention-days"><?php esc_html_e( 'Remote Retention Age', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<input id="alynt-remote-retention-days" name="alynt_drime_wpvivid_settings[remote_retention_days]" type="number" min="<?php echo esc_attr( (string) Alynt_Drime_WPvivid_Uploader_Settings::MIN_REMOTE_RETENTION_DAYS ); ?>" max="<?php echo esc_attr( (string) Alynt_Drime_WPvivid_Uploader_Settings::MAX_REMOTE_RETENTION_DAYS ); ?>" step="1" value="<?php echo esc_attr( (string) $settings['remote_retention_days'] ); ?>" aria-describedby="alynt-remote-retention-days-description">
+				<p id="alynt-remote-retention-days-description" class="description"><?php esc_html_e( 'Uploaded registry records older than this many days become eligible for manual Drime trash cleanup.', 'alynt-drime-wpvivid-uploader' ); ?></p>
 			</td>
 		</tr>
 		<tr>

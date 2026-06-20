@@ -102,6 +102,13 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	private $cron;
 
 	/**
+	 * Remote retention.
+	 *
+	 * @var Alynt_Drime_WPvivid_Uploader_Remote_Retention
+	 */
+	private $retention;
+
+	/**
 
 	 * Admin page.
 	 *
@@ -136,6 +143,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 
 		$this->cron = new Alynt_Drime_WPvivid_Uploader_Cron( $this );
 
+		$this->retention = new Alynt_Drime_WPvivid_Uploader_Remote_Retention( $this->settings, $this->client, $this->registry, $this->logger );
+
 		$this->admin_page = new Alynt_Drime_WPvivid_Uploader_Admin_Page( $this );
 
 		$this->hooks();
@@ -162,6 +171,10 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 		add_action( 'admin_post_alynt_drime_wpvivid_scan_now', array( $this, 'handle_scan_now' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_upload_next', array( $this, 'handle_upload_next' ) );
+
+		add_action( 'admin_post_alynt_drime_wpvivid_preview_remote_retention', array( $this, 'handle_preview_remote_retention' ) );
+
+		add_action( 'admin_post_alynt_drime_wpvivid_run_remote_retention', array( $this, 'handle_run_remote_retention' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_clear_active_upload', array( $this, 'handle_clear_active_upload' ) );
 
@@ -302,5 +315,17 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	public function uploader() {
 
 		return $this->uploader;
+	}
+
+	/**
+	 * Remote retention getter.
+	 *
+	 * @return Alynt_Drime_WPvivid_Uploader_Remote_Retention
+	 *
+	 * @since 0.1.0
+	 */
+	public function retention() {
+
+		return $this->retention;
 	}
 }

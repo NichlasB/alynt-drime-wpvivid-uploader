@@ -12,6 +12,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Caches resolved Drime parent folder IDs so remote duplicate checks work after relative-path uploads.
 - Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
 - Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
+- Provides manual remote-retention preview and cleanup for plugin-owned Drime uploads, moving eligible remote files to Drime trash only.
 - Stores bounded, redacted diagnostics when diagnostics are explicitly enabled.
 - Keeps local backups after upload by default; deletion requires explicit opt-in.
 
@@ -45,7 +46,9 @@ The settings screen controls:
 - Duplicate handling mode: skip existing files or rename new uploads.
 - Automatic WP-Cron scanning.
 - Minimum file age before queueing.
+- Multipart chunk size for large Drime uploads.
 - Optional local deletion after confirmed upload.
+- Optional manual remote retention for old plugin-owned Drime uploads.
 - Maximum retry count.
 - Diagnostics enablement, minimum severity, and retention.
 
@@ -62,6 +65,10 @@ Diagnostics redact bearer tokens, authorization headers, cookies, nonces, passwo
 ### Does this delete local WPvivid backups?
 
 No. Local deletion is disabled by default and only runs after a confirmed upload when the administrator enables **Delete Local Files**.
+
+### Does this permanently delete Drime files?
+
+No. Remote retention is disabled by default, runs only from manual admin actions, and moves eligible plugin-owned Drime uploads to trash. It does not permanently delete remote files.
 
 ### Does this upload incomplete WPvivid files?
 

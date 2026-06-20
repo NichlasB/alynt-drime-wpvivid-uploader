@@ -29,6 +29,9 @@ Updated: 2026-06-20
 - PHP syntax checks pass across plugin PHP files excluding vendor and node_modules.
 - The plugin is installed on `plugin-tester.local` from the packaged release zip `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip`.
 - The initial scaffold baseline exists at Git commit `7f4b5df`.
+- Configurable multipart chunk-size support is implemented in the current working tree, has passed post-feature review workflows and LocalWP/Drime E2E testing, and remains uncommitted.
+- Remote Drime retention is implemented in the current working tree as a conservative manual-only feature: registry-owned uploads only, 60-day default, Drime trash only, and no permanent remote deletion path.
+- Remote Drime Retention post-feature review sequence is complete. Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation Review, and Feature Security Review found no blocking issues. LocalWP dry-run runtime verification and one approved live Drime trash verification are complete.
 
 ## Target Test Site
 
@@ -150,6 +153,48 @@ Needed:
 - reject malformed multipart create/sign responses before upload completion or Drime entry registration (done with regression coverage)
 - handle HTTP `429` rate-limit responses without uploading backup bytes (done with regression coverage; live rate-limit induction intentionally not forced)
 
+### Planned Feature Slice: Remote Drime Retention
+
+Status: implemented in current working tree. Post-feature review sequence, LocalWP dry-run runtime verification, and one approved live Drime trash verification are complete.
+
+Goal:
+
+- Add optional controls for deleting old Drime files uploaded by this plugin.
+- Keep the first implementation conservative: move files to Drime trash only, not permanent deletion.
+- Limit cleanup candidates to plugin-owned uploaded-registry entries unless a later feature explicitly adds Drime-folder enumeration.
+- Keep remote retention separate from the existing local post-upload delete setting.
+
+Recommended first slice:
+
+- Add settings for remote retention:
+  - `remote_retention_enabled`, default disabled. Done.
+  - `remote_retention_days`, default `60`, clamped to `1` through `365`. Done.
+  - No permanent-delete setting in the first version. Hard-code `deleteForever=false`. Done.
+- Add a Drime client method for `POST /file-entries/delete` after re-verifying the current request and response schema against live API behavior. Done.
+- Add a focused retention service/class that selects eligible uploaded-registry records, calls the Drime delete endpoint, updates registry state, and writes diagnostics events. Done.
+- Use local registry `uploaded_at` age as the authoritative retention clock for the first version. Done.
+- Skip records without a verified Drime `fileEntry.id`, records newer than the configured age, and records already marked as trashed/deleted or `trash_failed`. Done.
+- Preserve uploaded-registry records after remote trashing and mark them with a remote status such as `uploaded`, `trashed`, or `trash_failed` so local files are not silently re-uploaded. Done.
+- Prefer a manual admin action with dry-run/preview output for the first implementation. Add scheduled automatic cleanup only after the behavior is proven locally and against Drime. Done; no scheduled cleanup was added.
+- Add admin UI in the settings/admin page for enablement, retention days, dry-run status, and a manual cleanup action. Treat cleanup as destructive: capability gate, nonce gate, clear copy, and explicit action feedback. Done.
+- Add diagnostics events such as `retention_started`, `retention_candidate_found`, `retention_file_trashed`, `retention_failed`, and `retention_finished`. Done.
+
+Tests and verification:
+
+- Unit-test settings sanitization for disabled state, day bounds, and default behavior. Done.
+- Unit-test candidate selection: disabled retention, missing Drime ID, new files, old files, already-trashed files, and failed prior attempts. Done.
+- Unit-test Drime delete request shape and response handling with `deleteForever=false`. Done.
+- Unit-test success and failure registry updates, including preserving records after trashing. Done.
+- Verify no code path performs permanent remote deletion in the first version. Done by static implementation, unit test coverage, and approved live runtime trash verification with `deleteForever=false`.
+- Run the post-feature workflows after implementation: Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation, and Feature Security Review. Done.
+- Use the Site Operations confirmation gate and ask for Novamira MCP availability before any LocalWP runtime testing. Done for the LocalWP dry-run pass.
+
+Open decisions before implementation:
+
+- Confirm the default retention period. Implemented with the candidate default of 60 days.
+- Confirm whether the first release should be manual-only with dry-run, or whether scheduled cleanup should ship in the same slice. Implemented as manual-only with preview; scheduled cleanup was intentionally deferred.
+- Confirm whether existing Drime test uploads should be cleaned up as a separate manual maintenance task. Done for the known leftover E2E upload, which was moved to Drime trash after explicit approval.
+
 ### 7. Admin UX Pass
 
 Run the UI workflow after the core feature paths are stable:
@@ -195,6 +240,10 @@ Status: partially complete on `plugin-tester.local`.
 Verified:
 
 - Plugin runtime files were copied into `C:\Users\Captain\Local Sites\plugin-tester\app\public\wp-content\plugins\alynt-drime-wpvivid-uploader` and activated.
+- Current Remote Drime Retention runtime files were copied into the LocalWP plugin directory after Novamira MCP became available.
+- Remote Drime Retention dry-run verification passed through Novamira MCP: the class and plugin method load, defaults merge as disabled/60 days, preview selects only old plugin-owned uploaded-registry records with Drime file-entry IDs, admin UI renders retention controls and candidate output, options are restored exactly after probes, and no remote Drime delete/trash request was executed during dry-run.
+- Remote Drime Retention live-trash verification passed after explicit approval: preview isolated only `alynt-e2e-chunk-20260620-144909.zip` with Drime entry id `760413126`, cleanup returned `candidates=1`, `trashed=1`, `failed=0`, `skipped=0`, settings were restored, the E2E upload is now marked `remote_status=trashed`, and the real WPvivid database backup remains `uploaded`.
+- Remote retention-day sanitization now clamps signed input to the supported 1-365 range; LocalWP runtime confirmed `-5` becomes `1` and `999` becomes `365` without writing options.
 - Default settings option was installed; auto-scan cron remains unscheduled while automatic scanning is disabled.
 - Admin page loads in wp-admin with no console errors.
 - Settings save works through `admin-post.php`.
@@ -210,6 +259,7 @@ Pending:
 
 - Duplicate handling against existing Drime files is partially verified. Local registry prevention is verified, and Drime remote duplicate-skip behavior was validated using a copied backup with the same basename and the cached top-level `parentId`; relative-path-only request variants remain unreliable.
 - Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains untested to avoid abusive API traffic.
+- Live Remote Drime Retention cleanup has been verified once against the approved leftover E2E test upload; broader arbitrary-folder cleanup is intentionally out of scope for this feature.
 
 Use `plugin-tester local-only` after the confirmation gate.
 

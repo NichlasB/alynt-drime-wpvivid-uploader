@@ -24,15 +24,20 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Notices {
 	 */
 	private function render_notice( $notice ) {
 		$messages = array(
-			'settings_saved'        => array( 'success', __( 'Settings saved.', 'alynt-drime-wpvivid-uploader' ) ),
-			'connected'             => array( 'success', __( 'Connected to Drime successfully.', 'alynt-drime-wpvivid-uploader' ) ),
-			'scan_complete'         => array( 'success', __( 'Backup scan completed.', 'alynt-drime-wpvivid-uploader' ) ),
-			'scan_failed'           => array( 'error', __( 'The backup scan could not be completed. Check the detected backup path and recent events, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
-			'upload_done'           => array( 'success', __( 'Upload completed.', 'alynt-drime-wpvivid-uploader' ) ),
-			'active_upload_cleared' => array( 'success', __( 'Active upload state cleared.', 'alynt-drime-wpvivid-uploader' ) ),
-			'diagnostics_cleared'   => array( 'success', __( 'Diagnostics cleared.', 'alynt-drime-wpvivid-uploader' ) ),
-			'settings_save_failed'  => array( 'error', __( 'Settings could not be saved. Confirm the site database is writable, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
-			'action_failed'         => array( 'error', __( 'The action could not be completed. Review the recent events, adjust the settings, and try again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'settings_saved'          => array( 'success', __( 'Settings saved.', 'alynt-drime-wpvivid-uploader' ) ),
+			'connected'               => array( 'success', __( 'Connected to Drime successfully.', 'alynt-drime-wpvivid-uploader' ) ),
+			'scan_complete'           => array( 'success', __( 'Backup scan completed.', 'alynt-drime-wpvivid-uploader' ) ),
+			'scan_failed'             => array( 'error', __( 'The backup scan could not be completed. Check the detected backup path and recent events, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'upload_done'             => array( 'success', __( 'Upload completed.', 'alynt-drime-wpvivid-uploader' ) ),
+			'retention_preview_ready' => array( 'success', __( 'Remote retention preview completed. Review the candidate count below before running cleanup.', 'alynt-drime-wpvivid-uploader' ) ),
+			'retention_preview_empty' => array( 'success', __( 'Remote retention preview completed. No eligible Drime files were found.', 'alynt-drime-wpvivid-uploader' ) ),
+			'retention_done'          => array( 'success', __( 'Remote retention cleanup completed. Eligible Drime files were moved to trash.', 'alynt-drime-wpvivid-uploader' ) ),
+			'retention_nothing_done'  => array( 'success', __( 'Remote retention cleanup completed. No Drime files needed cleanup.', 'alynt-drime-wpvivid-uploader' ) ),
+			'retention_failed'        => array( 'error', __( 'Remote retention cleanup could not be completed for every candidate. Review recent events before trying again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'active_upload_cleared'   => array( 'success', __( 'Active upload state cleared.', 'alynt-drime-wpvivid-uploader' ) ),
+			'diagnostics_cleared'     => array( 'success', __( 'Diagnostics cleared.', 'alynt-drime-wpvivid-uploader' ) ),
+			'settings_save_failed'    => array( 'error', __( 'Settings could not be saved. Confirm the site database is writable, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'action_failed'           => array( 'error', __( 'The action could not be completed. Review the recent events, adjust the settings, and try again.', 'alynt-drime-wpvivid-uploader' ) ),
 		);
 
 		if ( empty( $messages[ $notice ] ) ) {

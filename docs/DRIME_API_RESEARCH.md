@@ -68,9 +68,11 @@ Sources:
 - Resume asks Drime for uploaded parts, skips already completed part numbers, uploads missing parts, completes the multipart upload, and creates the S3 entry.
 - Admin recovery can clear local active upload state without exposing raw multipart state in the UI.
 - Admin recovery and stale active-state recovery now abort the remote multipart upload when the active state includes a Drime `key` and `uploadId`.
+- Multipart chunk size is configurable from 5 MB to 64 MB and defaults to 32 MB based on live part-size probing.
 - The uploader now runs a JSON API token preflight before any duplicate validation or file-byte upload.
 - Malformed response handling now records a redacted diagnostics event and returns `WP_Error`.
 - HTTP `429` rate-limit responses return `alynt_drime_api_error` with status `429`; upload preflight failures stop before duplicate validation or byte upload.
+- Remote retention uses the live-verified `POST /file-entries/delete` endpoint with `deleteForever=false` and a single plugin-owned Drime file entry ID per request. No production code path sends permanent remote deletion.
 
 ## Live Token Findings
 
@@ -90,10 +92,12 @@ Live API checks were run on 2026-06-20 from `plugin-tester.local` using a user-p
 - Live multipart upload through the plugin uploader succeeded for a temporary 5,373,952-byte `.zip` fixture. Drime returned a multipart key and S3 entry `fileEntry` id `759842062` under parent folder id `759829073`.
 - Live interrupted multipart resume succeeded for a temporary 10,551,296-byte `.zip` fixture. The first part was manually uploaded through the plugin Drime client, `get-uploaded-parts` returned one uploaded part before resume, the plugin uploader reused the same multipart key, uploaded the remaining parts, and created S3 entry `fileEntry` id `759845354` under parent folder id `759829073`.
 - Live remote abort succeeded for an in-progress multipart upload after one part was uploaded manually. Calling the plugin uploader's clear-active path recorded `manual_active_upload_abort_succeeded` and left active upload state empty.
+- Live abortable part-size probing found Drime accepted signed multipart `PUT` uploads with 32 MB and 64 MB parts and returned ETags for both. The 32 MB multipart session aborted cleanly; the 64 MB session accepted the part but the follow-up abort request timed out, so 32 MB is the safer default.
 - Invalid bearer token against `GET /drive/file-entries?workspaceId=0&perPage=1` returned HTTP `401` with message `Unauthenticated.` and plugin error code `alynt_drime_api_error`.
 - Live testing found Drime's direct upload path could still create a file when the plugin reached it with an invalid token, so the uploader now blocks every upload behind the JSON token preflight.
 - After that hardening, invalid-token upload retry behavior is verified: the queued item remains queued, attempts increment to `1`, a failed-registry item is recorded with `Unauthenticated.`, active state stays empty, and uploaded registry count does not change.
 - Temporary live Drime test files created during multipart and auth/error testing were moved to trash through `POST /file-entries/delete` with `deleteForever=false`; the real WPvivid test backup entry was not deleted.
+- Remote retention implementation currently relies on that live trash behavior and limits candidates to plugin-owned uploaded-registry records with a stored `fileEntry.id`.
 
 ## Still Unverified
 

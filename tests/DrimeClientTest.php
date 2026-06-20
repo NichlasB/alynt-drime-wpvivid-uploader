@@ -121,4 +121,41 @@ class DrimeClientTest extends TestCase {
 		$this->assertSame( 'Too many requests.', $result->get_error_message() );
 		$this->assertSame( array( 'status' => 429 ), $result->get_error_data() );
 	}
+
+	public function test_trash_file_entry_uses_non_permanent_delete_request() {
+		Functions\when( 'get_option' )->alias(
+			function ( $name, $default = array() ) {
+				if ( Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME !== $name ) {
+					return $default;
+				}
+
+				return array(
+					'api_token' => 'test-token',
+				);
+			}
+		);
+
+		Functions\expect( 'wp_json_encode' )->once()->with(
+			array(
+				'entryIds'      => array( 123 ),
+				'deleteForever' => false,
+			)
+		)->andReturn( '{"entryIds":[123],"deleteForever":false}' );
+
+		Functions\expect( 'wp_remote_request' )->once()->with(
+			Alynt_Drime_WPvivid_Uploader_Drime_Client::BASE_URL . '/file-entries/delete',
+			\Mockery::on(
+				function ( $args ) {
+					return 'POST' === $args['method']
+						&& '{"entryIds":[123],"deleteForever":false}' === $args['body'];
+				}
+			)
+		)->andReturn( array( 'body' => '{"status":"success"}' ) );
+		Functions\expect( 'wp_remote_retrieve_response_code' )->once()->andReturn( 200 );
+		Functions\expect( 'wp_remote_retrieve_body' )->once()->andReturn( '{"status":"success"}' );
+
+		$client = new Alynt_Drime_WPvivid_Uploader_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+
+		$this->assertSame( array( 'status' => 'success' ), $client->trash_file_entry( 123 ) );
+	}
 }

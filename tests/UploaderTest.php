@@ -56,6 +56,7 @@ class UploaderTest extends TestCase {
 			'key'         => 'existing-key',
 			'upload_id'   => 'existing-upload',
 			'signature'   => 'sig-one',
+			'chunk_size'  => Alynt_Drime_WPvivid_Uploader_Drime_Client::DEFAULT_MULTIPART_SIZE,
 			'updated_at'  => time(),
 		);
 
@@ -75,6 +76,30 @@ class UploaderTest extends TestCase {
 		$this->assertSame( array( 2 ), $client->uploaded_part_numbers );
 		$this->assertSame( 'existing-key', $client->completed_key );
 		$this->assertSame( 'existing-upload', $client->completed_upload_id );
+	}
+
+	public function test_active_upload_with_changed_chunk_size_is_aborted_before_restart() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Queue::ACTIVE_OPTION ] = array(
+			'local_file'  => $this->file,
+			'remote_name' => basename( $this->file ),
+			'key'         => 'old-key',
+			'upload_id'   => 'old-upload',
+			'signature'   => 'sig-one',
+			'chunk_size'  => Alynt_Drime_WPvivid_Uploader_Drime_Client::MIN_MULTIPART_CHUNK_SIZE,
+			'updated_at'  => time(),
+		);
+
+		$client   = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( 'old-key', $client->aborted_key );
+		$this->assertSame( 'old-upload', $client->aborted_upload_id );
+		$this->assertSame( 1, $client->create_multipart_calls );
+		$this->assertArrayNotHasKey( Alynt_Drime_WPvivid_Uploader_Queue::ACTIVE_OPTION, $options );
 	}
 
 	public function test_duplicate_validation_uses_cached_relative_path_parent_id() {
@@ -367,7 +392,7 @@ class UploaderTest extends TestCase {
 	 */
 	private function write_large_file( $path ) {
 		$handle = fopen( $path, 'wb' );
-		fseek( $handle, Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE + 100 );
+		fseek( $handle, Alynt_Drime_WPvivid_Uploader_Drime_Client::DEFAULT_MULTIPART_SIZE + 100 );
 		fwrite( $handle, 'x' );
 		fclose( $handle );
 	}

@@ -91,6 +91,7 @@ $alynt_drime_wpvivid_uploader_includes = array(
 	'includes/class-queue.php',
 	'includes/class-drime-client.php',
 	'includes/class-uploader.php',
+	'includes/class-remote-retention.php',
 	'includes/class-cron.php',
 	'includes/class-admin-page.php',
 	'includes/class-activator.php',

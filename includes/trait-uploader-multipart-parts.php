@@ -32,6 +32,8 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 			return new WP_Error( 'alynt_drime_file_open_failed', __( 'Could not open the backup file for upload.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
+		$chunk_size = $this->multipart_chunk_size();
+
 		for ( $part_number = 1; $part_number <= $session['total']; $part_number++ ) {
 			if ( isset( $parts[ $part_number ] ) ) {
 				if ( ! $this->store_active_upload_state( $path, $remote_name, $session['key'], $session['upload_id'], (string) $item['signature'], $parts, $session['total'] ) ) {
@@ -42,7 +44,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 				continue;
 			}
 
-			$part = $this->upload_multipart_part( $handle, $session['key'], $session['upload_id'], $part_number );
+			$part = $this->upload_multipart_part( $handle, $session['key'], $session['upload_id'], $part_number, $chunk_size );
 			if ( is_wp_error( $part ) ) {
 				fclose( $handle );
 				return $part;
@@ -68,9 +70,10 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 	 * @param string   $key Multipart key.
 	 * @param string   $upload_id Multipart upload ID.
 	 * @param int      $part_number Part number.
+	 * @param int      $chunk_size Chunk size in bytes.
 	 * @return array{PartNumber:int,ETag:string}|WP_Error
 	 */
-	private function upload_multipart_part( $handle, $key, $upload_id, $part_number ) {
+	private function upload_multipart_part( $handle, $key, $upload_id, $part_number, $chunk_size ) {
 		$sign_response = $this->client->sign_part_urls( $key, $upload_id, array( $part_number ) );
 		if ( is_wp_error( $sign_response ) ) {
 			return $sign_response;
@@ -81,7 +84,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 			return $url;
 		}
 
-		$data = $this->read_multipart_part( $handle, $part_number );
+		$data = $this->read_multipart_part( $handle, $part_number, $chunk_size );
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
@@ -102,14 +105,15 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 	 *
 	 * @param resource $handle File handle.
 	 * @param int      $part_number Part number.
+	 * @param int      $chunk_size Chunk size in bytes.
 	 * @return string|WP_Error
 	 */
-	private function read_multipart_part( $handle, $part_number ) {
-		if ( 0 !== fseek( $handle, ( $part_number - 1 ) * Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE ) ) {
+	private function read_multipart_part( $handle, $part_number, $chunk_size ) {
+		if ( 0 !== fseek( $handle, ( $part_number - 1 ) * $chunk_size ) ) {
 			return new WP_Error( 'alynt_drime_file_seek_failed', __( 'Could not seek to the next backup chunk.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
-		$data = fread( $handle, Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE );
+		$data = fread( $handle, $chunk_size );
 
 		return false === $data ? new WP_Error( 'alynt_drime_file_read_failed', __( 'Could not read the next backup chunk.', 'alynt-drime-wpvivid-uploader' ) ) : $data;
 	}

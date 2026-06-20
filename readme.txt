@@ -14,7 +14,7 @@ Upload completed WPvivid local backup archives to Drime.
 
 Alynt Drime WPvivid Uploader is a companion plugin that scans completed local WPvivid backup archives, queues stable backup files, and uploads them to Drime.
 
-The plugin includes Drime destination settings, WPvivid path detection, direct and multipart upload support, duplicate handling, retry tracking, active-upload recovery, and optional redacted diagnostics for support. Local deletion after upload is disabled by default.
+The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, and optional redacted diagnostics for support. Local deletion and remote retention are disabled by default.
 
 == Installation ==
 
@@ -29,6 +29,10 @@ The plugin includes Drime destination settings, WPvivid path detection, direct a
 = Does this delete local WPvivid backups? =
 
 No. Local deletion is disabled by default and must be explicitly enabled in settings.
+
+= Does this permanently delete Drime files? =
+
+No. Remote retention is disabled by default, runs only from manual admin actions, and moves eligible plugin-owned Drime uploads to trash. It does not permanently delete remote files.
 
 = Does this upload incomplete backups? =
 

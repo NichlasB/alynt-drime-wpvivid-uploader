@@ -52,6 +52,23 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Active_Upload {
 		}
 
 		if ( $this->active_state_matches_item( $active, $item ) ) {
+			if ( ! $this->active_state_chunk_size_matches( $active ) ) {
+				$this->abort_active_upload( $active, 'chunk_size_changed_upload_abort' );
+				if ( ! $this->queue->set_active( null ) ) {
+					return $this->state_persistence_error();
+				}
+
+				$this->logger->event(
+					'upload',
+					'warning',
+					'chunk_size_changed_upload_cleared',
+					'Active upload state was cleared because the multipart chunk size changed.',
+					array(
+						'file' => isset( $active['remote_name'] ) ? basename( (string) $active['remote_name'] ) : '',
+					)
+				);
+			}
+
 			return true;
 		}
 

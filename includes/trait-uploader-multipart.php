@@ -90,7 +90,8 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 	 * @return array{key:string,upload_id:string,total:int}|WP_Error
 	 */
 	private function multipart_session( $path, $remote_name, $size, $extension, array $item ) {
-		$resume_state = $this->get_resume_state( $item, $path, $remote_name );
+		$chunk_size   = $this->multipart_chunk_size();
+		$resume_state = $this->get_resume_state( $item, $path, $remote_name, $chunk_size );
 		$created      = null === $resume_state ? $this->client->create_multipart_upload( $remote_name, $size, $extension ) : $resume_state;
 
 		if ( is_wp_error( $created ) ) {
@@ -104,7 +105,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 		return array(
 			'key'       => (string) $created['key'],
 			'upload_id' => (string) $created['uploadId'],
-			'total'     => (int) ceil( $size / Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE ),
+			'total'     => (int) ceil( $size / $chunk_size ),
 		);
 	}
 
@@ -177,9 +178,10 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 	 * @param array<string,mixed> $item Queue item.
 	 * @param string              $path Local path.
 	 * @param string              $remote_name Remote filename.
+	 * @param int                 $chunk_size Chunk size in bytes.
 	 * @return array<string,string>|null
 	 */
-	private function get_resume_state( array $item, $path, $remote_name ) {
+	private function get_resume_state( array $item, $path, $remote_name, $chunk_size ) {
 		$active = $this->queue->get_active();
 
 		if ( empty( $active ) || ! $this->active_state_matches_item( $active, $item ) ) {
@@ -195,6 +197,10 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 		}
 
 		if ( ! empty( $active['remote_name'] ) && (string) $active['remote_name'] !== $remote_name ) {
+			return null;
+		}
+
+		if ( empty( $active['chunk_size'] ) || absint( $active['chunk_size'] ) !== absint( $chunk_size ) ) {
 			return null;
 		}
 
@@ -269,6 +275,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 				'signature'       => $signature,
 				'completed_parts' => count( $parts ),
 				'total_parts'     => $total,
+				'chunk_size'      => $this->multipart_chunk_size(),
 				'parts'           => array_values( $parts ),
 				'updated_at'      => time(),
 			)
@@ -294,5 +301,15 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 		$item_file   = isset( $item['path'] ) ? wp_normalize_path( (string) $item['path'] ) : '';
 
 		return '' !== $active_file && $active_file === $item_file;
+	}
+
+	/**
+	 * Checks whether active upload state uses the current multipart chunk size.
+	 *
+	 * @param array<string,mixed> $active Active upload state.
+	 * @return bool
+	 */
+	private function active_state_chunk_size_matches( array $active ) {
+		return ! empty( $active['chunk_size'] ) && absint( $active['chunk_size'] ) === $this->multipart_chunk_size();
 	}
 }

@@ -19,8 +19,11 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 	use Alynt_Drime_WPvivid_Uploader_Drime_Client_Direct_Upload;
 	use Alynt_Drime_WPvivid_Uploader_Drime_Client_Multipart;
 
-	const BASE_URL       = 'https://app.drime.cloud/api/v1';
-	const MULTIPART_SIZE = 5242880;
+	const BASE_URL                  = 'https://app.drime.cloud/api/v1';
+	const MIN_MULTIPART_CHUNK_SIZE  = Alynt_Drime_WPvivid_Uploader_Settings::MIN_MULTIPART_CHUNK_SIZE_MB * 1048576;
+	const MAX_MULTIPART_CHUNK_SIZE  = Alynt_Drime_WPvivid_Uploader_Settings::MAX_MULTIPART_CHUNK_SIZE_MB * 1048576;
+	const DEFAULT_MULTIPART_SIZE_MB = Alynt_Drime_WPvivid_Uploader_Settings::DEFAULT_MULTIPART_CHUNK_SIZE_MB;
+	const DEFAULT_MULTIPART_SIZE    = self::DEFAULT_MULTIPART_SIZE_MB * 1048576;
 
 	/**
 	 * Settings.
@@ -137,6 +140,34 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 		}
 
 		return $response['name'];
+	}
+
+	/**
+	 * Moves a Drime file entry to trash.
+	 *
+	 * This first retention implementation intentionally never sends a permanent
+	 * delete request.
+	 *
+	 * @param int $file_entry_id Drime file entry ID.
+	 * @return array<string,mixed>|true|WP_Error
+	 *
+	 * @since 0.1.0
+	 */
+	public function trash_file_entry( $file_entry_id ) {
+		$file_entry_id = absint( $file_entry_id );
+
+		if ( $file_entry_id <= 0 ) {
+			return new WP_Error( 'alynt_drime_missing_file_entry_id', __( 'A Drime file entry ID is required before remote retention can run.', 'alynt-drime-wpvivid-uploader' ) );
+		}
+
+		return $this->request(
+			'POST',
+			'/file-entries/delete',
+			array(
+				'entryIds'      => array( $file_entry_id ),
+				'deleteForever' => false,
+			)
+		);
 	}
 
 	/**

@@ -15,7 +15,10 @@ Option name: `alynt_drime_wpvivid_settings`
 | `auto_scan_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables scheduled WP-Cron scanning. |
 | `scan_interval` | string | `fifteen_minutes` | internal fixed value | Internal | WP-Cron schedule key used by automatic scanning. |
 | `min_file_age_seconds` | integer | `900` | `absint`, minimum `60` | Behavior | Minimum modified age before a file can be queued. |
+| `multipart_chunk_size_mb` | integer | `32` | `absint`, range `5` to `64` | Behavior | Multipart upload part size in MB. `32` is recommended for large backups. |
 | `delete_local_after_upload` | boolean | `false` | boolean cast from checkbox presence | Behavior | Deletes local backup files after confirmed upload when enabled. |
+| `remote_retention_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Allows manual cleanup of old Drime files uploaded by this plugin. |
+| `remote_retention_days` | integer | `60` | `absint`, range `1` to `365` | Behavior | Uploaded registry records older than this many days are eligible for manual remote cleanup. |
 | `max_retries` | integer | `3` | `absint`, range `0` to `10` | Behavior | Failed upload attempts allowed before a queued item is removed. |
 | `diagnostics_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables redacted diagnostics storage. |
 | `diagnostics_min_level` | string | `warning` | `sanitize_key`, allowlist severity level | Behavior | Minimum diagnostics severity to store. |
@@ -29,7 +32,7 @@ These options are owned by the plugin and are removed on uninstall.
 | --- | --- | --- | --- | --- |
 | `alynt_drime_wpvivid_upload_queue` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Queue` | Pending backup upload items keyed by signature. |
 | `alynt_drime_wpvivid_active_upload` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Queue` | Current multipart upload state used for resume and recovery. |
-| `alynt_drime_wpvivid_uploaded_files` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Uploaded backup records keyed by signature. |
+| `alynt_drime_wpvivid_uploaded_files` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Uploaded backup records keyed by signature. Remote retention preserves these records and records `remote_status`, `remote_updated`, and optional `remote_status_context`. |
 | `alynt_drime_wpvivid_failed_uploads` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Failed upload records keyed by signature. |
 | `alynt_drime_wpvivid_drime_locations` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Cached Drime parent folder IDs for configured relative paths. |
 | `alynt_drime_wpvivid_file_snapshots` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Scanner` | File size/modified-time snapshots used to verify stability across scans. |

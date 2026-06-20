@@ -50,7 +50,9 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 		$uploaded[ $signature ] = array_merge(
 			$record,
 			array(
-				'uploaded_at' => time(),
+				'uploaded_at'    => time(),
+				'remote_status'  => 'uploaded',
+				'remote_updated' => time(),
 			)
 		);
 
@@ -93,6 +95,35 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 		unset( $failed[ $signature ] );
 
 		return $this->persist_array_option( self::FAILED_OPTION, $failed );
+	}
+
+	/**
+	 * Marks remote retention state for an uploaded record.
+	 *
+	 * @param string              $signature Signature.
+	 * @param string              $status Remote status.
+	 * @param array<string,mixed> $context Optional context.
+	 * @return bool
+	 *
+	 * @since 0.1.0
+	 */
+	public function mark_remote_retention_status( $signature, $status, array $context = array() ) {
+		$uploaded = $this->get_uploaded();
+
+		if ( empty( $uploaded[ $signature ] ) || ! is_array( $uploaded[ $signature ] ) ) {
+			return false;
+		}
+
+		$uploaded[ $signature ]['remote_status']  = sanitize_key( $status );
+		$uploaded[ $signature ]['remote_updated'] = time();
+
+		if ( ! empty( $context ) ) {
+			$uploaded[ $signature ]['remote_status_context'] = $this->sanitize_context( $context );
+		} else {
+			unset( $uploaded[ $signature ]['remote_status_context'] );
+		}
+
+		return $this->persist_array_option( self::UPLOADED_OPTION, $uploaded );
 	}
 
 	/**
@@ -207,5 +238,26 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 	 */
 	private function location_key( $workspace_id, $relative_path ) {
 		return hash( 'sha256', absint( $workspace_id ) . '|' . $relative_path );
+	}
+
+	/**
+	 * Sanitizes small registry context values.
+	 *
+	 * @param array<string,mixed> $context Context.
+	 * @return array<string,string|int>
+	 */
+	private function sanitize_context( array $context ) {
+		$sanitized = array();
+
+		foreach ( $context as $key => $value ) {
+			$key = sanitize_key( $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			$sanitized[ $key ] = is_numeric( $value ) ? absint( $value ) : sanitize_text_field( (string) $value );
+		}
+
+		return $sanitized;
 	}
 }

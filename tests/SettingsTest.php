@@ -54,6 +54,48 @@ class SettingsTest extends TestCase {
 		$this->assertFalse( $settings->is_persisted( $saved ) );
 	}
 
+	public function test_multipart_chunk_size_is_clamped_to_supported_range() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		$low = $settings->update(
+			array(
+				'multipart_chunk_size_mb' => 1,
+			)
+		);
+
+		$high = $settings->update(
+			array(
+				'multipart_chunk_size_mb' => 999,
+			)
+		);
+
+		$this->assertSame( 5, $low['multipart_chunk_size_mb'] );
+		$this->assertSame( 64, $high['multipart_chunk_size_mb'] );
+	}
+
+	public function test_remote_retention_days_are_clamped_to_supported_range() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		$low = $settings->update(
+			array(
+				'remote_retention_enabled' => '1',
+				'remote_retention_days'    => -5,
+			)
+		);
+
+		$high = $settings->update(
+			array(
+				'remote_retention_days' => 999,
+			)
+		);
+
+		$this->assertTrue( $low['remote_retention_enabled'] );
+		$this->assertSame( 1, $low['remote_retention_days'] );
+		$this->assertSame( 365, $high['remote_retention_days'] );
+	}
+
 	/**
 	 * Creates settings with mocked option storage.
 	 *

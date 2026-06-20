@@ -16,7 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Settings {
-	const OPTION_NAME = 'alynt_drime_wpvivid_settings';
+	const OPTION_NAME                     = 'alynt_drime_wpvivid_settings';
+	const MIN_MULTIPART_CHUNK_SIZE_MB     = 5;
+	const MAX_MULTIPART_CHUNK_SIZE_MB     = 64;
+	const DEFAULT_MULTIPART_CHUNK_SIZE_MB = 32;
+	const MIN_REMOTE_RETENTION_DAYS       = 1;
+	const MAX_REMOTE_RETENTION_DAYS       = 365;
+	const DEFAULT_REMOTE_RETENTION_DAYS   = 60;
 
 	/**
 	 * Returns default settings.
@@ -36,7 +42,10 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			'auto_scan_enabled'         => false,
 			'scan_interval'             => 'fifteen_minutes',
 			'min_file_age_seconds'      => 900,
+			'multipart_chunk_size_mb'   => self::DEFAULT_MULTIPART_CHUNK_SIZE_MB,
 			'delete_local_after_upload' => false,
+			'remote_retention_enabled'  => false,
+			'remote_retention_days'     => self::DEFAULT_REMOTE_RETENTION_DAYS,
 			'max_retries'               => 3,
 			'diagnostics_enabled'       => false,
 			'diagnostics_min_level'     => 'warning',
@@ -139,7 +148,10 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$settings['auto_scan_enabled']         = ! empty( $raw['auto_scan_enabled'] );
 		$settings['scan_interval']             = 'fifteen_minutes';
 		$settings['min_file_age_seconds']      = isset( $raw['min_file_age_seconds'] ) ? max( 60, absint( $raw['min_file_age_seconds'] ) ) : 900;
+		$settings['multipart_chunk_size_mb']   = isset( $raw['multipart_chunk_size_mb'] ) ? max( self::MIN_MULTIPART_CHUNK_SIZE_MB, min( self::MAX_MULTIPART_CHUNK_SIZE_MB, absint( $raw['multipart_chunk_size_mb'] ) ) ) : self::DEFAULT_MULTIPART_CHUNK_SIZE_MB;
 		$settings['delete_local_after_upload'] = ! empty( $raw['delete_local_after_upload'] );
+		$settings['remote_retention_enabled']  = ! empty( $raw['remote_retention_enabled'] );
+		$settings['remote_retention_days']     = isset( $raw['remote_retention_days'] ) ? $this->clamp_remote_retention_days( $raw['remote_retention_days'] ) : self::DEFAULT_REMOTE_RETENTION_DAYS;
 		$settings['max_retries']               = isset( $raw['max_retries'] ) ? max( 0, min( 10, absint( $raw['max_retries'] ) ) ) : 3;
 
 		$settings['diagnostics_enabled']   = ! empty( $raw['diagnostics_enabled'] );
@@ -198,6 +210,16 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$path = '/' . trim( $path, '/' );
 
 		return false === strpos( $path, '..' ) ? $path : '';
+	}
+
+	/**
+	 * Clamps remote retention age to the supported day range.
+	 *
+	 * @param mixed $days Raw day count.
+	 * @return int
+	 */
+	private function clamp_remote_retention_days( $days ) {
+		return max( self::MIN_REMOTE_RETENTION_DAYS, min( self::MAX_REMOTE_RETENTION_DAYS, (int) $days ) );
 	}
 
 	/**
