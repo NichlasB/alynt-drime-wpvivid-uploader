@@ -26,6 +26,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 		<h2><?php esc_html_e( 'Manual Actions', 'alynt-drime-wpvivid-uploader' ); ?></h2>
 		<div class="alynt-drime-wpvivid-actions">
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_test_connection', __( 'Test Drime Connection', 'alynt-drime-wpvivid-uploader' ) ); ?>
+			<?php $this->render_action_button( 'alynt_drime_wpvivid_send_test_failure_email', __( 'Send Test Email', 'alynt-drime-wpvivid-uploader' ) ); ?>
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_scan_now', __( 'Scan Backup Folder', 'alynt-drime-wpvivid-uploader' ) ); ?>
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_upload_next', __( 'Upload Next Queued Backup', 'alynt-drime-wpvivid-uploader' ) ); ?>
 			<?php $this->render_action_button( 'alynt_drime_wpvivid_preview_remote_retention', __( 'Preview Remote Retention', 'alynt-drime-wpvivid-uploader' ) ); ?>

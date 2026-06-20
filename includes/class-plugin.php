@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Alynt_Drime_WPvivid_Uploader_Plugin {
 	use Alynt_Drime_WPvivid_Uploader_Plugin_Admin_Actions;
+	use Alynt_Drime_WPvivid_Uploader_Plugin_Notification_Actions;
 
 	/**
 
@@ -37,6 +38,13 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	 */
 
 	private $logger;
+
+	/**
+	 * Failure notifier.
+	 *
+	 * @var Alynt_Drime_WPvivid_Uploader_Failure_Notifier
+	 */
+	private $notifier;
 
 	/**
 
@@ -129,6 +137,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 
 		$this->logger = new Alynt_Drime_WPvivid_Uploader_Logger( $this->settings );
 
+		$this->notifier = new Alynt_Drime_WPvivid_Uploader_Failure_Notifier( $this->settings, $this->logger );
+
 		$this->detector = new Alynt_Drime_WPvivid_Uploader_WPvivid_Detector();
 
 		$this->scanner = new Alynt_Drime_WPvivid_Uploader_Scanner( $this->settings, $this->detector, $this->logger );
@@ -139,7 +149,7 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 
 		$this->client = new Alynt_Drime_WPvivid_Uploader_Drime_Client( $this->settings, $this->logger );
 
-		$this->uploader = new Alynt_Drime_WPvivid_Uploader_Uploader( $this->settings, $this->client, $this->queue, $this->registry, $this->logger );
+		$this->uploader = new Alynt_Drime_WPvivid_Uploader_Uploader( $this->settings, $this->client, $this->queue, $this->registry, $this->logger, $this->notifier );
 
 		$this->cron = new Alynt_Drime_WPvivid_Uploader_Cron( $this );
 
@@ -167,6 +177,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 		add_action( 'admin_post_alynt_drime_wpvivid_save_settings', array( $this, 'handle_save_settings' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_test_connection', array( $this, 'handle_test_connection' ) );
+
+		add_action( 'admin_post_alynt_drime_wpvivid_send_test_failure_email', array( $this, 'handle_send_test_failure_email' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_scan_now', array( $this, 'handle_scan_now' ) );
 
@@ -263,6 +275,18 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	public function logger() {
 
 		return $this->logger;
+	}
+
+	/**
+	 * Failure notifier getter.
+	 *
+	 * @return Alynt_Drime_WPvivid_Uploader_Failure_Notifier
+	 *
+	 * @since 0.1.0
+	 */
+	public function notifier() {
+
+		return $this->notifier;
 	}
 
 	/**

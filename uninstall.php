@@ -15,6 +15,7 @@ $alynt_drime_wpvivid_options = array(
 	'alynt_drime_wpvivid_uploaded_files',
 	'alynt_drime_wpvivid_failed_uploads',
 	'alynt_drime_wpvivid_drime_locations',
+	'alynt_drime_wpvivid_failure_notifications',
 	'alynt_drime_wpvivid_upload_queue',
 	'alynt_drime_wpvivid_active_upload',
 	'alynt_drime_wpvivid_upload_lock',

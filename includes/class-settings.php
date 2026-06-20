@@ -46,6 +46,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			'delete_local_after_upload' => false,
 			'remote_retention_enabled'  => false,
 			'remote_retention_days'     => self::DEFAULT_REMOTE_RETENTION_DAYS,
+			'failure_email_enabled'     => false,
+			'failure_email_recipients'  => self::default_failure_email_recipients(),
 			'max_retries'               => 3,
 			'diagnostics_enabled'       => false,
 			'diagnostics_min_level'     => 'warning',
@@ -152,6 +154,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$settings['delete_local_after_upload'] = ! empty( $raw['delete_local_after_upload'] );
 		$settings['remote_retention_enabled']  = ! empty( $raw['remote_retention_enabled'] );
 		$settings['remote_retention_days']     = isset( $raw['remote_retention_days'] ) ? $this->clamp_remote_retention_days( $raw['remote_retention_days'] ) : self::DEFAULT_REMOTE_RETENTION_DAYS;
+		$settings['failure_email_enabled']     = ! empty( $raw['failure_email_enabled'] );
+		$settings['failure_email_recipients']  = $this->sanitize_email_recipients( isset( $raw['failure_email_recipients'] ) ? (string) wp_unslash( $raw['failure_email_recipients'] ) : self::default_failure_email_recipients() );
 		$settings['max_retries']               = isset( $raw['max_retries'] ) ? max( 0, min( 10, absint( $raw['max_retries'] ) ) ) : 3;
 
 		$settings['diagnostics_enabled']   = ! empty( $raw['diagnostics_enabled'] );
@@ -220,6 +224,61 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 */
 	private function clamp_remote_retention_days( $days ) {
 		return max( self::MIN_REMOTE_RETENTION_DAYS, min( self::MAX_REMOTE_RETENTION_DAYS, (int) $days ) );
+	}
+
+	/**
+	 * Returns the default failure notification recipients.
+	 *
+	 * @return string
+	 */
+	private static function default_failure_email_recipients() {
+		$admin_email = function_exists( 'get_option' ) ? get_option( 'admin_email', '' ) : '';
+
+		return is_string( $admin_email ) ? self::sanitize_single_email( $admin_email ) : '';
+	}
+
+	/**
+	 * Sanitizes comma- or newline-separated email recipients.
+	 *
+	 * @param string $recipients Raw recipients.
+	 * @return string
+	 */
+	private function sanitize_email_recipients( $recipients ) {
+		$recipients = preg_split( '/[\r\n,]+/', $recipients );
+		$valid      = array();
+
+		foreach ( (array) $recipients as $recipient ) {
+			$recipient = self::sanitize_single_email( trim( (string) $recipient ) );
+			if ( '' !== $recipient && self::is_valid_email( $recipient ) ) {
+				$valid[] = $recipient;
+			}
+		}
+
+		return implode( "\n", array_values( array_unique( $valid ) ) );
+	}
+
+	/**
+	 * Sanitizes a single email value with a test-safe fallback.
+	 *
+	 * @param string $email Email address.
+	 * @return string
+	 */
+	private static function sanitize_single_email( $email ) {
+		return trim( preg_replace( '/[\r\n]+/', '', (string) $email ) );
+	}
+
+	/**
+	 * Validates a single email value with a conservative fallback.
+	 *
+	 * @param string $email Email address.
+	 * @return bool
+	 */
+	private static function is_valid_email( $email ) {
+		if ( function_exists( 'is_email' ) ) {
+			return (bool) is_email( $email );
+		}
+
+		return false !== filter_var( $email, FILTER_VALIDATE_EMAIL );
 	}
 
 	/**

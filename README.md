@@ -13,6 +13,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
 - Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
 - Provides manual remote-retention preview and cleanup for plugin-owned Drime uploads, moving eligible remote files to Drime trash only.
+- Sends optional plain-text failed upload notifications through WordPress mail with duplicate suppression.
 - Stores bounded, redacted diagnostics when diagnostics are explicitly enabled.
 - Keeps local backups after upload by default; deletion requires explicit opt-in.
 
@@ -49,6 +50,7 @@ The settings screen controls:
 - Multipart chunk size for large Drime uploads.
 - Optional local deletion after confirmed upload.
 - Optional manual remote retention for old plugin-owned Drime uploads.
+- Optional failed upload email notifications and recipient list.
 - Maximum retry count.
 - Diagnostics enablement, minimum severity, and retention.
 
@@ -69,6 +71,10 @@ No. Local deletion is disabled by default and only runs after a confirmed upload
 ### Does this permanently delete Drime files?
 
 No. Remote retention is disabled by default, runs only from manual admin actions, and moves eligible plugin-owned Drime uploads to trash. It does not permanently delete remote files.
+
+### How are failed upload emails delivered?
+
+Failure emails are disabled by default and use WordPress `wp_mail()`, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and include only safe operational details such as site URL, backup filename, sanitized reason, attempt count, timestamp, and the admin page URL.
 
 ### Does this upload incomplete WPvivid files?
 

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-20T15:26:44+00:00\n"
+"POT-Creation-Date: 2026-06-20T17:01:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: alynt-drime-wpvivid-uploader\n"
@@ -51,7 +51,7 @@ msgid "Drime WPvivid"
 msgstr ""
 
 #: includes/class-admin-page.php:96
-#: includes/trait-plugin-admin-actions.php:260
+#: includes/trait-plugin-admin-actions.php:262
 msgid "You do not have permission to manage this plugin."
 msgstr ""
 
@@ -75,31 +75,52 @@ msgstr ""
 msgid "Drime returned an unexpected response shape."
 msgstr ""
 
+#: includes/class-failure-notifier.php:94
+msgid "No failure notification recipients are configured."
+msgstr ""
+
+#: includes/class-failure-notifier.php:97
+msgid "Drime backup test email"
+msgstr ""
+
+#: includes/class-failure-notifier.php:100
+msgid "WordPress could not hand the test email to the mail stack."
+msgstr ""
+
+#: includes/class-failure-notifier.php:126
+msgid "Drime backup upload failed"
+msgstr ""
+
 #: includes/class-scanner.php:111
 msgid "The WPvivid backup directory is not readable."
 msgstr ""
 
-#: includes/class-uploader.php:91
+#: includes/class-uploader.php:100
 msgid "Another backup upload is already running. Please try again shortly."
 msgstr ""
 
-#: includes/class-uploader.php:97
+#: includes/class-uploader.php:106
 msgid "There are no queued backups to upload."
 msgstr ""
 
-#: includes/class-uploader.php:270
+#: includes/class-uploader.php:210
+#: includes/trait-uploader-retry-state.php:51
+msgid "The queued backup reached the retry limit."
+msgstr ""
+
+#: includes/class-uploader.php:298
 msgid "The upload state could not be saved. Check that the WordPress database is writable, then try again."
 msgstr ""
 
-#: includes/class-uploader.php:317
+#: includes/class-uploader.php:345
 msgid "The queued backup file is no longer readable."
 msgstr ""
 
-#: includes/class-uploader.php:325
+#: includes/class-uploader.php:353
 msgid "The queued backup file is empty."
 msgstr ""
 
-#: includes/class-uploader.php:330
+#: includes/class-uploader.php:358
 msgid "A file with this name already exists in Drime, so the upload was skipped."
 msgstr ""
 
@@ -124,38 +145,46 @@ msgid "Upload completed."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:32
-msgid "Remote retention preview completed. Review the candidate count below before running cleanup."
+msgid "Test email handed to the WordPress mail stack."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:33
-msgid "Remote retention preview completed. No eligible Drime files were found."
+msgid "The test email could not be sent. Check the saved recipients and site mail configuration, then try again."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:34
-msgid "Remote retention cleanup completed. Eligible Drime files were moved to trash."
+msgid "Remote retention preview completed. Review the candidate count below before running cleanup."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:35
-msgid "Remote retention cleanup completed. No Drime files needed cleanup."
+msgid "Remote retention preview completed. No eligible Drime files were found."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:36
-msgid "Remote retention cleanup could not be completed for every candidate. Review recent events before trying again."
+msgid "Remote retention cleanup completed. Eligible Drime files were moved to trash."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:37
-msgid "Active upload state cleared."
+msgid "Remote retention cleanup completed. No Drime files needed cleanup."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:38
-msgid "Diagnostics cleared."
+msgid "Remote retention cleanup could not be completed for every candidate. Review recent events before trying again."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:39
-msgid "Settings could not be saved. Confirm the site database is writable, then try again."
+msgid "Active upload state cleared."
 msgstr ""
 
 #: includes/trait-admin-page-notices.php:40
+msgid "Diagnostics cleared."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:41
+msgid "Settings could not be saved. Confirm the site database is writable, then try again."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:42
 msgid "The action could not be completed. Review the recent events, adjust the settings, and try again."
 msgstr ""
 
@@ -227,135 +256,155 @@ msgstr ""
 msgid "Behavior"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:136
+#: includes/trait-admin-page-settings.php:137
 msgid "Duplicate Handling"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:139
+#: includes/trait-admin-page-settings.php:140
 msgid "Skip existing files"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:140
+#: includes/trait-admin-page-settings.php:141
 msgid "Rename new uploads"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:142
+#: includes/trait-admin-page-settings.php:143
 msgid "Choose whether existing Drime filenames are skipped or renamed during upload."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:146
+#: includes/trait-admin-page-settings.php:147
 msgid "Automatic Scanning"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:147
+#: includes/trait-admin-page-settings.php:148
 msgid "Scan with WP-Cron every 15 minutes."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:150
+#: includes/trait-admin-page-settings.php:151
 msgid "Minimum File Age"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:153
+#: includes/trait-admin-page-settings.php:154
 msgid "Files must also keep the same size across scans before they are queued."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:157
+#: includes/trait-admin-page-settings.php:158
 msgid "Multipart Chunk Size"
 msgstr ""
 
 #. translators: %d: recommended multipart chunk size in MB.
-#: includes/trait-admin-page-settings.php:164
+#: includes/trait-admin-page-settings.php:165
 #, php-format
 msgid "Set the size of each Drime multipart upload part. %d MB is recommended for large backups."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:172
+#: includes/trait-admin-page-settings.php:173
 msgid "Delete Local Files"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:174
+#: includes/trait-admin-page-settings.php:175
 msgid "Delete local backup files after confirmed Drime upload."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:175
+#: includes/trait-admin-page-settings.php:176
 msgid "Keep this off until end-to-end testing is complete."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:179
-#: includes/trait-admin-page-status.php:93
+#: includes/trait-admin-page-settings.php:180
+#: includes/trait-admin-page-status.php:94
 msgid "Remote Retention"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:181
+#: includes/trait-admin-page-settings.php:182
 msgid "Allow manual cleanup of old Drime files uploaded by this plugin."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:182
+#: includes/trait-admin-page-settings.php:183
 msgid "Cleanup moves eligible Drime files to trash only. It does not permanently delete remote files or delete local backup files."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:186
+#: includes/trait-admin-page-settings.php:187
 msgid "Remote Retention Age"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:189
+#: includes/trait-admin-page-settings.php:190
 msgid "Uploaded registry records older than this many days become eligible for manual Drime trash cleanup."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:193
+#: includes/trait-admin-page-settings.php:194
 msgid "Maximum Retries"
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:196
+#: includes/trait-admin-page-settings.php:197
 msgid "Set the number of failed upload attempts before a queued file is removed."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:210
-msgid "Debug"
-msgstr ""
-
-#: includes/trait-admin-page-settings.php:211
-msgid "Info"
-msgstr ""
-
 #: includes/trait-admin-page-settings.php:212
-msgid "Warning"
-msgstr ""
-
-#: includes/trait-admin-page-settings.php:213
-msgid "Error"
+msgid "Failure Emails"
 msgstr ""
 
 #: includes/trait-admin-page-settings.php:214
-msgid "Critical"
+msgid "Email administrators when an upload reaches a final failure state."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:215
+msgid "Emails are plain text and use the site WordPress mail stack."
 msgstr ""
 
 #: includes/trait-admin-page-settings.php:219
-#: includes/trait-admin-page-status.php:134
-msgid "Diagnostics"
-msgstr ""
-
-#: includes/trait-admin-page-settings.php:221
-msgid "Store redacted diagnostic events."
+msgid "Failure Email Recipients"
 msgstr ""
 
 #: includes/trait-admin-page-settings.php:222
-msgid "Events are stored locally and exclude tokens, request bodies, and signed URLs."
+msgid "Enter one email per line or separate multiple addresses with commas."
 msgstr ""
 
-#: includes/trait-admin-page-settings.php:226
-msgid "Diagnostics Level"
-msgstr ""
-
-#: includes/trait-admin-page-settings.php:233
-msgid "Only events at this severity or higher are stored."
+#: includes/trait-admin-page-settings.php:236
+msgid "Debug"
 msgstr ""
 
 #: includes/trait-admin-page-settings.php:237
-msgid "Diagnostics Retention"
+msgid "Info"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:238
+msgid "Warning"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:239
+msgid "Error"
 msgstr ""
 
 #: includes/trait-admin-page-settings.php:240
+msgid "Critical"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:245
+#: includes/trait-admin-page-status.php:135
+msgid "Diagnostics"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:247
+msgid "Store redacted diagnostic events."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:248
+msgid "Events are stored locally and exclude tokens, request bodies, and signed URLs."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:252
+msgid "Diagnostics Level"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:259
+msgid "Only events at this severity or higher are stored."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:263
+msgid "Diagnostics Retention"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:266
 msgid "Maximum local diagnostic events to retain."
 msgstr ""
 
@@ -368,210 +417,214 @@ msgid "Test Drime Connection"
 msgstr ""
 
 #: includes/trait-admin-page-status.php:29
-msgid "Scan Backup Folder"
+msgid "Send Test Email"
 msgstr ""
 
 #: includes/trait-admin-page-status.php:30
-msgid "Upload Next Queued Backup"
+msgid "Scan Backup Folder"
 msgstr ""
 
 #: includes/trait-admin-page-status.php:31
+msgid "Upload Next Queued Backup"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:32
 msgid "Preview Remote Retention"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:32
+#: includes/trait-admin-page-status.php:33
 msgid "Run Remote Retention"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:32
+#: includes/trait-admin-page-status.php:33
 msgid "Move eligible Drime files uploaded by this plugin to trash?"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:47
+#: includes/trait-admin-page-status.php:48
 msgid "Status"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:49
+#: includes/trait-admin-page-status.php:50
 msgid "Queued"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:50
+#: includes/trait-admin-page-status.php:51
 msgid "Uploaded"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:51
+#: includes/trait-admin-page-status.php:52
 msgid "Failed"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:68
+#: includes/trait-admin-page-status.php:69
 msgid "Active Upload"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:70
+#: includes/trait-admin-page-status.php:71
 msgid "Active upload details"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:72
-#: includes/trait-admin-page-status.php:108
+#: includes/trait-admin-page-status.php:73
+#: includes/trait-admin-page-status.php:109
 msgid "File"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:73
+#: includes/trait-admin-page-status.php:74
 msgid "Completed Parts"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:74
+#: includes/trait-admin-page-status.php:75
 msgid "Total Parts"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:75
+#: includes/trait-admin-page-status.php:76
 msgid "Updated"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:79
+#: includes/trait-admin-page-status.php:80
 msgid "Clear Active Upload"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:79
+#: includes/trait-admin-page-status.php:80
 msgid "Clear active upload state? The current multipart upload may need to restart."
 msgstr ""
 
-#: includes/trait-admin-page-status.php:95
+#: includes/trait-admin-page-status.php:96
 msgid "Remote retention summary"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:97
+#: includes/trait-admin-page-status.php:98
 msgid "Enabled"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:97
-#: includes/trait-admin-page-status.php:145
-#: includes/trait-admin-page-status.php:148
+#: includes/trait-admin-page-status.php:98
+#: includes/trait-admin-page-status.php:146
+#: includes/trait-admin-page-status.php:149
 msgid "Yes"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:97
-#: includes/trait-admin-page-status.php:145
-#: includes/trait-admin-page-status.php:148
+#: includes/trait-admin-page-status.php:98
+#: includes/trait-admin-page-status.php:146
+#: includes/trait-admin-page-status.php:149
 msgid "No"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:98
+#: includes/trait-admin-page-status.php:99
 msgid "Retention Age"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:98
-#: includes/trait-admin-page-status.php:116
+#: includes/trait-admin-page-status.php:99
+#: includes/trait-admin-page-status.php:117
 msgid "days"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:99
+#: includes/trait-admin-page-status.php:100
 msgid "Eligible Files"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:100
+#: includes/trait-admin-page-status.php:101
 msgid "Cleanup Mode"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:100
+#: includes/trait-admin-page-status.php:101
 msgid "Move to Drime trash only"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:105
+#: includes/trait-admin-page-status.php:106
 msgid "Remote retention candidates"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:109
+#: includes/trait-admin-page-status.php:110
 msgid "Age"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:136
+#: includes/trait-admin-page-status.php:137
 msgid "Export Diagnostics"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:137
+#: includes/trait-admin-page-status.php:138
 msgid "Clear Diagnostics"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:140
+#: includes/trait-admin-page-status.php:141
 msgid "Diagnostics health summary"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:142
+#: includes/trait-admin-page-status.php:143
 msgid "Plugin Version"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:143
+#: includes/trait-admin-page-status.php:144
 msgid "WordPress Version"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:144
+#: includes/trait-admin-page-status.php:145
 msgid "PHP Version"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:145
+#: includes/trait-admin-page-status.php:146
 msgid "Diagnostics Enabled"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:146
+#: includes/trait-admin-page-status.php:147
 msgid "Stored Events"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:147
+#: includes/trait-admin-page-status.php:148
 msgid "Last Event"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:147
+#: includes/trait-admin-page-status.php:148
 msgid "None"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:148
+#: includes/trait-admin-page-status.php:149
 msgid "Scan Cron Scheduled"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:162
+#: includes/trait-admin-page-status.php:163
 msgid "Recent Events"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:180
+#: includes/trait-admin-page-status.php:181
 msgid "No events yet"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:181
+#: includes/trait-admin-page-status.php:182
 msgid "Scans, uploads, and connection checks will appear here."
 msgstr ""
 
-#: includes/trait-admin-page-status.php:195
+#: includes/trait-admin-page-status.php:196
 msgid "Recent diagnostic events"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:198
+#: includes/trait-admin-page-status.php:199
 msgid "Time"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:199
+#: includes/trait-admin-page-status.php:200
 msgid "Level"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:200
+#: includes/trait-admin-page-status.php:201
 msgid "Category"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:201
+#: includes/trait-admin-page-status.php:202
 msgid "Code"
 msgstr ""
 
-#: includes/trait-admin-page-status.php:202
+#: includes/trait-admin-page-status.php:203
 msgid "Message"
 msgstr ""
 
 #. translators: %s: Button label.
-#: includes/trait-admin-page-status.php:231
+#: includes/trait-admin-page-status.php:232
 #, php-format
 msgid "%s..."
 msgstr ""
 
-#: includes/trait-admin-page-status.php:242
+#: includes/trait-admin-page-status.php:243
 msgid "Clear all diagnostics events? This cannot be undone."
 msgstr ""
 
@@ -607,6 +660,63 @@ msgstr ""
 msgid "Drime returned an unsafe upload URL."
 msgstr ""
 
+#: includes/trait-failure-notifier-content.php:32
+msgid "A Drime backup upload failed."
+msgstr ""
+
+#. translators: %s: site URL.
+#: includes/trait-failure-notifier-content.php:36
+#: includes/trait-failure-notifier-content.php:86
+#, php-format
+msgid "Site URL: %s"
+msgstr ""
+
+#. translators: %s: backup filename.
+#: includes/trait-failure-notifier-content.php:41
+#, php-format
+msgid "Backup file: %s"
+msgstr ""
+
+#. translators: %s: failure status label.
+#: includes/trait-failure-notifier-content.php:46
+#, php-format
+msgid "Failure status: %s"
+msgstr ""
+
+#. translators: %s: sanitized failure reason.
+#: includes/trait-failure-notifier-content.php:51
+#, php-format
+msgid "Reason: %s"
+msgstr ""
+
+#. translators: %d: upload attempt count.
+#: includes/trait-failure-notifier-content.php:56
+#, php-format
+msgid "Attempts: %d"
+msgstr ""
+
+#. translators: %s: UTC timestamp.
+#: includes/trait-failure-notifier-content.php:61
+#: includes/trait-failure-notifier-content.php:91
+#, php-format
+msgid "Timestamp: %s UTC"
+msgstr ""
+
+#. translators: %s: plugin admin page URL.
+#: includes/trait-failure-notifier-content.php:66
+#: includes/trait-failure-notifier-content.php:96
+#, php-format
+msgid "Admin page: %s"
+msgstr ""
+
+#: includes/trait-failure-notifier-content.php:82
+msgid "This is a test email from Alynt Drime WPvivid Uploader."
+msgstr ""
+
+#: includes/trait-failure-notifier-content.php:174
+msgid "WordPress Site"
+msgstr ""
+
 #: includes/trait-uploader-active-upload.php:75
 msgid "An upload is already marked active."
 msgstr ""
@@ -633,8 +743,4 @@ msgstr ""
 
 #: includes/trait-uploader-multipart.php:172
 msgid "Drime did not return the expected part URL."
-msgstr ""
-
-#: includes/trait-uploader-retry-state.php:51
-msgid "The queued backup reached the retry limit."
 msgstr ""

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Added a configurable multipart chunk size setting for Drime uploads, defaulting to 32 MB with a supported 5-64 MB range.
 - Added manual Remote Retention controls that preview old plugin-owned Drime uploads and move eligible remote files to Drime trash without permanent deletion.
+- Added optional failed-upload email notifications through WordPress mail with recipient settings, duplicate suppression, and a test-email admin action.
 
 ## [0.1.1] - 2026-06-20
 

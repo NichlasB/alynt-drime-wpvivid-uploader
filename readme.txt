@@ -14,7 +14,7 @@ Upload completed WPvivid local backup archives to Drime.
 
 Alynt Drime WPvivid Uploader is a companion plugin that scans completed local WPvivid backup archives, queues stable backup files, and uploads them to Drime.
 
-The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, and optional redacted diagnostics for support. Local deletion and remote retention are disabled by default.
+The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
 
 == Installation ==
 
@@ -42,11 +42,20 @@ The scanner waits until files are old enough and their size is stable across sca
 
 Diagnostics are disabled by default. When enabled, diagnostics are redacted and stored in a bounded WordPress option.
 
+= How are failed upload emails delivered? =
+
+Failure emails are disabled by default and use WordPress mail, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and avoid tokens, signed URLs, raw request bodies, file contents, stack traces, and absolute server paths.
+
 = Does this expose custom developer hooks? =
 
 No public custom actions or filters are exposed in version 0.1.1.
 
 == Changelog ==
+
+= Unreleased =
+* Added a configurable multipart chunk size setting for Drime uploads.
+* Added manual Remote Retention controls for plugin-owned Drime uploads.
+* Added optional failed-upload email notifications through WordPress mail with recipient settings, duplicate suppression, and a test-email admin action.
 
 = 0.1.1 =
 * Added Alynt Plugin Updater compatibility metadata and refreshed release packaging workflow for public GitHub release updates.

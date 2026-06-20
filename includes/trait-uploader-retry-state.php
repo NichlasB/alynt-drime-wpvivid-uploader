@@ -67,6 +67,8 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Retry_State {
 			)
 		);
 
+		$this->notify_failure( $item, 'retry_limit_reached', $message, isset( $item['attempts'] ) ? absint( $item['attempts'] ) : 0 );
+
 		return new WP_Error( 'alynt_drime_retry_limit_reached', $message );
 	}
 }

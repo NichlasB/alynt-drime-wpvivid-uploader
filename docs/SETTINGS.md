@@ -19,6 +19,8 @@ Option name: `alynt_drime_wpvivid_settings`
 | `delete_local_after_upload` | boolean | `false` | boolean cast from checkbox presence | Behavior | Deletes local backup files after confirmed upload when enabled. |
 | `remote_retention_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Allows manual cleanup of old Drime files uploaded by this plugin. |
 | `remote_retention_days` | integer | `60` | `absint`, range `1` to `365` | Behavior | Uploaded registry records older than this many days are eligible for manual remote cleanup. |
+| `failure_email_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Sends plain-text failed upload notifications through WordPress mail. |
+| `failure_email_recipients` | string | site admin email | comma/newline parsing, valid emails only, stored one per line | Behavior | Recipients for failed upload notifications and test emails. |
 | `max_retries` | integer | `3` | `absint`, range `0` to `10` | Behavior | Failed upload attempts allowed before a queued item is removed. |
 | `diagnostics_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables redacted diagnostics storage. |
 | `diagnostics_min_level` | string | `warning` | `sanitize_key`, allowlist severity level | Behavior | Minimum diagnostics severity to store. |
@@ -35,6 +37,7 @@ These options are owned by the plugin and are removed on uninstall.
 | `alynt_drime_wpvivid_uploaded_files` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Uploaded backup records keyed by signature. Remote retention preserves these records and records `remote_status`, `remote_updated`, and optional `remote_status_context`. |
 | `alynt_drime_wpvivid_failed_uploads` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Failed upload records keyed by signature. |
 | `alynt_drime_wpvivid_drime_locations` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Cached Drime parent folder IDs for configured relative paths. |
+| `alynt_drime_wpvivid_failure_notifications` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Failure_Notifier` | Sent-notification ledger keyed by backup signature and failure state to suppress duplicate failure emails. |
 | `alynt_drime_wpvivid_file_snapshots` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Scanner` | File size/modified-time snapshots used to verify stability across scans. |
 | `alynt_drime_wpvivid_logs` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Logger` | Redacted diagnostics events when diagnostics are enabled. |
 | `alynt_drime_wpvivid_upload_lock` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Uploader` | Short-lived upload worker lock to prevent concurrent queue processing. |

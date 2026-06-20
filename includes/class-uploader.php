@@ -61,22 +61,31 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	private $logger;
 
 	/**
+	 * Failure notifier.
+	 *
+	 * @var Alynt_Drime_WPvivid_Uploader_Failure_Notifier|null
+	 */
+	private $notifier;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Alynt_Drime_WPvivid_Uploader_Settings        $settings Settings.
-	 * @param Alynt_Drime_WPvivid_Uploader_Drime_Client    $client Client.
-	 * @param Alynt_Drime_WPvivid_Uploader_Queue           $queue Queue.
-	 * @param Alynt_Drime_WPvivid_Uploader_Backup_Registry $registry Registry.
-	 * @param Alynt_Drime_WPvivid_Uploader_Logger          $logger Logger.
+	 * @param Alynt_Drime_WPvivid_Uploader_Settings              $settings Settings.
+	 * @param Alynt_Drime_WPvivid_Uploader_Drime_Client          $client Client.
+	 * @param Alynt_Drime_WPvivid_Uploader_Queue                 $queue Queue.
+	 * @param Alynt_Drime_WPvivid_Uploader_Backup_Registry       $registry Registry.
+	 * @param Alynt_Drime_WPvivid_Uploader_Logger                $logger Logger.
+	 * @param Alynt_Drime_WPvivid_Uploader_Failure_Notifier|null $notifier Failure notifier.
 	 *
 	 * @since 0.1.0
 	 */
-	public function __construct( Alynt_Drime_WPvivid_Uploader_Settings $settings, Alynt_Drime_WPvivid_Uploader_Drime_Client $client, Alynt_Drime_WPvivid_Uploader_Queue $queue, Alynt_Drime_WPvivid_Uploader_Backup_Registry $registry, Alynt_Drime_WPvivid_Uploader_Logger $logger ) {
+	public function __construct( Alynt_Drime_WPvivid_Uploader_Settings $settings, Alynt_Drime_WPvivid_Uploader_Drime_Client $client, Alynt_Drime_WPvivid_Uploader_Queue $queue, Alynt_Drime_WPvivid_Uploader_Backup_Registry $registry, Alynt_Drime_WPvivid_Uploader_Logger $logger, ?Alynt_Drime_WPvivid_Uploader_Failure_Notifier $notifier = null ) {
 		$this->settings = $settings;
 		$this->client   = $client;
 		$this->queue    = $queue;
 		$this->registry = $registry;
 		$this->logger   = $logger;
+		$this->notifier = $notifier;
 	}
 
 	/**
@@ -159,6 +168,23 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	}
 
 	/**
+	 * Sends a failure notification when the notifier is available.
+	 *
+	 * @param array<string,mixed> $item Queue item.
+	 * @param string              $failure_state Failure state.
+	 * @param string              $reason Failure reason.
+	 * @param int                 $attempts Attempt count.
+	 * @return void
+	 */
+	public function notify_failure( array $item, $failure_state, $reason, $attempts = 0 ) {
+		if ( null === $this->notifier ) {
+			return;
+		}
+
+		$this->notifier->notify_failure( $item, $failure_state, $reason, $attempts );
+	}
+
+	/**
 	 * Removes a queued item that reached the retry limit.
 	 *
 	 * @param array<string,mixed> $item Queue item.
@@ -180,6 +206,8 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 				'attempts' => $attempts,
 			)
 		);
+
+		$this->notify_failure( $item, 'retry_limit_reached', __( 'The queued backup reached the retry limit.', 'alynt-drime-wpvivid-uploader' ), $attempts );
 
 		return true;
 	}

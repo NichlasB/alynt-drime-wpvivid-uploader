@@ -16,6 +16,16 @@ class SettingsTest extends TestCase {
 
 		Functions\when( 'wp_unslash' )->returnArg();
 		Functions\when( 'sanitize_text_field' )->returnArg();
+		Functions\when( 'sanitize_email' )->alias(
+			function ( $value ) {
+				return trim( (string) $value );
+			}
+		);
+		Functions\when( 'is_email' )->alias(
+			function ( $value ) {
+				return false !== filter_var( $value, FILTER_VALIDATE_EMAIL );
+			}
+		);
 		Functions\when( 'sanitize_key' )->alias(
 			function ( $value ) {
 				return strtolower( preg_replace( '/[^a-z0-9_\-]/i', '', (string) $value ) );
@@ -94,6 +104,21 @@ class SettingsTest extends TestCase {
 		$this->assertTrue( $low['remote_retention_enabled'] );
 		$this->assertSame( 1, $low['remote_retention_days'] );
 		$this->assertSame( 365, $high['remote_retention_days'] );
+	}
+
+	public function test_failure_email_recipients_are_normalized() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		$saved = $settings->update(
+			array(
+				'failure_email_enabled'    => '1',
+				'failure_email_recipients' => "admin@example.test, bad-address\nops@example.test\nadmin@example.test",
+			)
+		);
+
+		$this->assertTrue( $saved['failure_email_enabled'] );
+		$this->assertSame( "admin@example.test\nops@example.test", $saved['failure_email_recipients'] );
 	}
 
 	/**

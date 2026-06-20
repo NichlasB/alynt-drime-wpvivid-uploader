@@ -108,11 +108,13 @@ trait Alynt_Drime_WPvivid_Uploader_Plugin_Admin_Actions {
 
 		$this->verify_admin_action( 'alynt_drime_wpvivid_upload_next' );
 
+		$item   = $this->queue->next();
 		$result = $this->uploader->upload_next();
 
 		if ( is_wp_error( $result ) ) {
 
 			$this->logger->event( 'upload', 'error', 'manual_upload_failed', 'Manual upload failed.', array( 'reason' => $result->get_error_message() ) );
+			$this->notify_manual_upload_failure( $item, $result );
 
 			$this->redirect( 'action_failed' );
 

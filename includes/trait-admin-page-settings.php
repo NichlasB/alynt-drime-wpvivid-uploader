@@ -115,6 +115,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 		<h2><?php esc_html_e( 'Behavior', 'alynt-drime-wpvivid-uploader' ); ?></h2>
 		<table class="form-table" role="presentation">
 			<?php $this->render_upload_behavior_settings( $settings ); ?>
+			<?php $this->render_failure_email_settings( $settings ); ?>
 			<?php $this->render_diagnostics_settings( $settings ); ?>
 		</table>
 		<?php
@@ -194,6 +195,31 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 			<td>
 				<input id="alynt-max-retries" name="alynt_drime_wpvivid_settings[max_retries]" type="number" min="0" max="10" value="<?php echo esc_attr( (string) $settings['max_retries'] ); ?>" aria-describedby="alynt-max-retries-description">
 				<p id="alynt-max-retries-description" class="description"><?php esc_html_e( 'Set the number of failed upload attempts before a queued file is removed.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Renders failure email notification settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return void
+	 */
+	private function render_failure_email_settings( array $settings ) {
+		?>
+		<tr>
+			<th scope="row"><label for="alynt-failure-email-enabled"><?php esc_html_e( 'Failure Emails', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<label><input id="alynt-failure-email-enabled" name="alynt_drime_wpvivid_settings[failure_email_enabled]" type="checkbox" value="1" <?php checked( ! empty( $settings['failure_email_enabled'] ) ); ?> aria-describedby="alynt-failure-email-description"> <?php esc_html_e( 'Email administrators when an upload reaches a final failure state.', 'alynt-drime-wpvivid-uploader' ); ?></label>
+				<p id="alynt-failure-email-description" class="description"><?php esc_html_e( 'Emails are plain text and use the site WordPress mail stack.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-failure-email-recipients"><?php esc_html_e( 'Failure Email Recipients', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<textarea id="alynt-failure-email-recipients" name="alynt_drime_wpvivid_settings[failure_email_recipients]" class="large-text code" rows="3" aria-describedby="alynt-failure-email-recipients-description"><?php echo esc_textarea( (string) $settings['failure_email_recipients'] ); ?></textarea>
+				<p id="alynt-failure-email-recipients-description" class="description"><?php esc_html_e( 'Enter one email per line or separate multiple addresses with commas.', 'alynt-drime-wpvivid-uploader' ); ?></p>
 			</td>
 		</tr>
 		<?php

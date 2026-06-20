@@ -29,7 +29,7 @@ Updated: 2026-06-20
 - PHP syntax checks pass across plugin PHP files excluding vendor and node_modules.
 - The plugin is installed on `plugin-tester.local` from the packaged release zip `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip`.
 - The initial scaffold baseline exists at Git commit `7f4b5df`.
-- Configurable multipart chunk-size support is implemented in the current working tree, has passed post-feature review workflows and LocalWP/Drime E2E testing, and remains uncommitted.
+- Configurable multipart chunk-size support is implemented, committed, pushed to `origin/master`, and has passed post-feature review workflows plus LocalWP/Drime E2E testing.
 - Remote Drime retention is implemented in the current working tree as a conservative manual-only feature: registry-owned uploads only, 60-day default, Drime trash only, and no permanent remote deletion path.
 - Remote Drime Retention post-feature review sequence is complete. Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation Review, and Feature Security Review found no blocking issues. LocalWP dry-run runtime verification and one approved live Drime trash verification are complete.
 
@@ -194,6 +194,75 @@ Open decisions before implementation:
 - Confirm the default retention period. Implemented with the candidate default of 60 days.
 - Confirm whether the first release should be manual-only with dry-run, or whether scheduled cleanup should ship in the same slice. Implemented as manual-only with preview; scheduled cleanup was intentionally deferred.
 - Confirm whether existing Drime test uploads should be cleaned up as a separate manual maintenance task. Done for the known leftover E2E upload, which was moved to Drime trash after explicit approval.
+
+### Feature Slice: Failed Upload Email Notifications
+
+Status: implemented in source. LocalWP runtime mail-stack verification and post-feature review workflows are pending.
+
+Goal:
+
+- Notify administrators when a Drime upload reaches a meaningful failure state so unattended backup workflows do not fail silently.
+- Use WordPress-native mail delivery through `wp_mail()` so SMTP plugins such as FluentSMTP, SureMail, WP Mail SMTP, and Post SMTP can handle transport automatically.
+- Avoid notification spam from repeated cron retries, bad tokens, or transient Drime/API failures.
+
+Recommended first slice:
+
+- Add settings:
+  - `failure_email_enabled`, default disabled. Done.
+  - `failure_email_recipients`, default to `get_option( 'admin_email' )`. Done.
+  - Optional `failure_email_test_recipient` is not needed if the test action uses the saved recipients. Done; no separate test-recipient setting was added.
+- Add a notification service/class that:
+  - builds plain-text email messages for failed uploads. Done.
+  - sends with `wp_mail()`. Done.
+  - records diagnostics for sent, skipped, and failed notification attempts. Done.
+  - never includes Drime tokens, presigned URLs, raw request bodies, file contents, or stack traces. Done by limiting message fields and sanitizing/redacting failure reasons.
+- Send notifications only when an upload becomes terminally failed:
+  - manual upload action returns `WP_Error`. Done.
+  - queue retry cap is reached and the item is marked failed/removed. Done.
+- Do not send on every retry attempt. Done.
+- Deduplicate notifications by backup signature plus failure state so repeated cron runs do not send the same alert repeatedly. Done.
+- Add a manual admin action to send a test notification through the current WordPress mail stack. Done.
+- Include a clear admin notice after the test action:
+  - success when `wp_mail()` returns true. Done.
+  - actionable failure copy when `wp_mail()` returns false. Done.
+- Keep the first version plain text. Defer HTML templates unless there is a specific need. Done.
+
+Email content:
+
+- Subject: include site name and plugin context, such as `[Site Name] Drime backup upload failed`.
+- Body should include:
+  - site URL,
+  - backup filename,
+  - failure status/reason in sanitized plain language,
+  - attempt count when available,
+  - timestamp,
+  - admin page URL for Tools > Drime WPvivid.
+- Do not expose absolute server paths in the email unless explicitly approved later.
+
+Tests and verification:
+
+- Unit-test settings sanitization for enabled state and recipient list parsing.
+- Unit-test notification dedupe behavior.
+- Unit-test that `wp_mail()` is called with expected recipients, subject, message, and plain-text headers.
+- Unit-test that disabled notifications do not send.
+- Unit-test failure paths when `wp_mail()` returns false.
+- Source unit coverage added for settings parsing, dedupe behavior, `wp_mail()` call shape, disabled notification behavior, failed mail results, and test-email delivery through saved recipients.
+- Verify LocalWP runtime with the active site mail stack:
+  - send test email through the plugin action,
+  - confirm diagnostics record the notification attempt,
+  - if SureMail or another SMTP/logging plugin is active, confirm the email appears in that plugin's logs without exposing secrets.
+- Run feature-stage workflows after implementation:
+  - `FEATURE_LIGHT_REVIEW_PROMPT.md`
+  - `FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md` if changed PHP/JS/CSS warrants it
+  - `FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md`
+  - `FEATURE_SECURITY_REVIEW_PROMPT.md`
+
+Open decisions before implementation:
+
+- Confirm whether notifications should default to disabled or enabled. Recommended: disabled for the first release.
+- Confirm whether recipients should allow comma-separated emails, one email per line, or both. Implemented: both, normalized one per line internally.
+- Confirm whether the first trigger should include manual upload failures, terminal cron failures, or both. Implemented: both, deduped by backup signature and failure state.
+- Confirm whether to include absolute local backup paths in email. Implemented: no; emails use basenames only and redact URL/path substrings in failure reasons.
 
 ### 7. Admin UX Pass
 
