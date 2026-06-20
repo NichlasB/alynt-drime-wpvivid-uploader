@@ -1,0 +1,533 @@
+# Copyright (C) 2026 Alynt
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Alynt Drime WPvivid Uploader 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/alynt-drime-wpvivid-uploader\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-20T12:08:49+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: alynt-drime-wpvivid-uploader\n"
+
+#. Plugin Name of the plugin
+#: alynt-drime-wpvivid-uploader.php
+msgid "Alynt Drime WPvivid Uploader"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: alynt-drime-wpvivid-uploader.php
+msgid "https://alynt.com/"
+msgstr ""
+
+#. Description of the plugin
+#: alynt-drime-wpvivid-uploader.php
+msgid "Upload completed WPvivid local backup archives to Drime."
+msgstr ""
+
+#. Author of the plugin
+#: alynt-drime-wpvivid-uploader.php
+msgid "Alynt"
+msgstr ""
+
+#. translators: 1: minimum WordPress version, 2: minimum PHP version.
+#: alynt-drime-wpvivid-uploader.php:58
+#, php-format
+msgid "Alynt Drime WPvivid Uploader requires WordPress %1$s or higher and PHP %2$s or higher."
+msgstr ""
+
+#: includes/class-admin-page.php:43
+#: includes/class-admin-page.php:101
+msgid "Drime WPvivid Uploader"
+msgstr ""
+
+#: includes/class-admin-page.php:44
+msgid "Drime WPvivid"
+msgstr ""
+
+#: includes/class-admin-page.php:85
+#: includes/trait-plugin-admin-actions.php:203
+msgid "You do not have permission to manage this plugin."
+msgstr ""
+
+#: includes/class-cron.php:56
+msgid "Every 15 minutes"
+msgstr ""
+
+#: includes/class-drime-client.php:177
+msgid "Add a Drime API token before connecting."
+msgstr ""
+
+#: includes/class-drime-client.php:227
+msgid "Drime returned an error response."
+msgstr ""
+
+#: includes/class-drime-client.php:259
+msgid "Drime returned an unexpected response shape."
+msgstr ""
+
+#: includes/class-scanner.php:102
+msgid "The WPvivid backup directory is not readable."
+msgstr ""
+
+#: includes/class-uploader.php:84
+msgid "Another backup upload is already running. Please try again shortly."
+msgstr ""
+
+#: includes/class-uploader.php:90
+msgid "There are no queued backups to upload."
+msgstr ""
+
+#: includes/class-uploader.php:259
+msgid "The upload state could not be saved. Check that the WordPress database is writable, then try again."
+msgstr ""
+
+#: includes/class-uploader.php:306
+msgid "The queued backup file is no longer readable."
+msgstr ""
+
+#: includes/class-uploader.php:314
+msgid "The queued backup file is empty."
+msgstr ""
+
+#: includes/class-uploader.php:319
+msgid "A file with this name already exists in Drime, so the upload was skipped."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:24
+msgid "Settings saved."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:25
+msgid "Connected to Drime successfully."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:26
+msgid "Backup scan completed."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:27
+msgid "The backup scan could not be completed. Check the detected backup path and recent events, then try again."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:28
+msgid "Upload completed."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:29
+msgid "Active upload state cleared."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:30
+msgid "Diagnostics cleared."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:31
+msgid "Settings could not be saved. Confirm the site database is writable, then try again."
+msgstr ""
+
+#: includes/trait-admin-page-notices.php:32
+msgid "The action could not be completed. Review the recent events, adjust the settings, and try again."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:31
+msgid "Save Settings"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:31
+msgid "Saving..."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:44
+msgid "Drime"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:47
+msgid "API Token"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:50
+msgid "Enter a Drime bearer token. Leave the masked value unchanged to keep the saved token."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:54
+msgid "Workspace ID"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:57
+msgid "Use 0 for your personal/default Drime workspace."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:61
+msgid "Parent Folder ID"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:64
+msgid "Leave empty for the Drime root folder. You can also use a relative path below."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:68
+msgid "Relative Path"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:70
+msgid "/WPvivid Backups"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:71
+msgid "Optional Drime folder path. Drime can auto-create missing folders when this is provided."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:87
+msgid "WPvivid Source"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:90
+msgid "Detected Backup Path"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:94
+msgid "Backup Path Override"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:97
+msgid "Optional. Use only if WPvivid stores local backups outside the detected path."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:112
+msgid "Behavior"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:129
+msgid "Duplicate Handling"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:132
+msgid "Skip existing files"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:133
+msgid "Rename new uploads"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:135
+msgid "Choose whether existing Drime filenames are skipped or renamed during upload."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:139
+msgid "Automatic Scanning"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:140
+msgid "Scan with WP-Cron every 15 minutes."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:143
+msgid "Minimum File Age"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:146
+msgid "Files must also keep the same size across scans before they are queued."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:150
+msgid "Delete Local Files"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:152
+msgid "Delete local backup files after confirmed Drime upload."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:153
+msgid "Keep this off until end-to-end testing is complete."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:157
+msgid "Maximum Retries"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:160
+msgid "Set the number of failed upload attempts before a queued file is removed."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:174
+msgid "Debug"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:175
+msgid "Info"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:176
+msgid "Warning"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:177
+msgid "Error"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:178
+msgid "Critical"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:183
+#: includes/trait-admin-page-status.php:88
+msgid "Diagnostics"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:185
+msgid "Store redacted diagnostic events."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:186
+msgid "Events are stored locally and exclude tokens, request bodies, and signed URLs."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:190
+msgid "Diagnostics Level"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:197
+msgid "Only events at this severity or higher are stored."
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:201
+msgid "Diagnostics Retention"
+msgstr ""
+
+#: includes/trait-admin-page-settings.php:204
+msgid "Maximum local diagnostic events to retain."
+msgstr ""
+
+#: includes/trait-admin-page-status.php:23
+msgid "Manual Actions"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:25
+msgid "Test Drime Connection"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:26
+msgid "Scan Backup Folder"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:27
+msgid "Upload Next Queued Backup"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:42
+msgid "Status"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:44
+msgid "Queued"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:45
+msgid "Uploaded"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:46
+msgid "Failed"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:63
+msgid "Active Upload"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:65
+msgid "Active upload details"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:67
+msgid "File"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:68
+msgid "Completed Parts"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:69
+msgid "Total Parts"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:70
+msgid "Updated"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:74
+msgid "Clear Active Upload"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:74
+msgid "Clear active upload state? The current multipart upload may need to restart."
+msgstr ""
+
+#: includes/trait-admin-page-status.php:90
+msgid "Export Diagnostics"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:91
+msgid "Clear Diagnostics"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:94
+msgid "Diagnostics health summary"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:96
+msgid "Plugin Version"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:97
+msgid "WordPress Version"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:98
+msgid "PHP Version"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:99
+msgid "Diagnostics Enabled"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:99
+#: includes/trait-admin-page-status.php:102
+msgid "Yes"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:99
+#: includes/trait-admin-page-status.php:102
+msgid "No"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:100
+msgid "Stored Events"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:101
+msgid "Last Event"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:101
+msgid "None"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:102
+msgid "Scan Cron Scheduled"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:116
+msgid "Recent Events"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:134
+msgid "No events yet"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:135
+msgid "Scans, uploads, and connection checks will appear here."
+msgstr ""
+
+#: includes/trait-admin-page-status.php:149
+msgid "Recent diagnostic events"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:152
+msgid "Time"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:153
+msgid "Level"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:154
+msgid "Category"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:155
+msgid "Code"
+msgstr ""
+
+#: includes/trait-admin-page-status.php:156
+msgid "Message"
+msgstr ""
+
+#. translators: %s: Button label.
+#: includes/trait-admin-page-status.php:185
+#, php-format
+msgid "%s..."
+msgstr ""
+
+#: includes/trait-admin-page-status.php:196
+msgid "Clear all diagnostics events? This cannot be undone."
+msgstr ""
+
+#: includes/trait-drime-client-direct-upload.php:25
+msgid "The PHP cURL extension is required for direct small-file uploads."
+msgstr ""
+
+#: includes/trait-drime-client-direct-upload.php:32
+msgid "Add a Drime API token before uploading."
+msgstr ""
+
+#: includes/trait-drime-client-direct-upload.php:77
+msgid "The direct upload request could not be initialized."
+msgstr ""
+
+#: includes/trait-drime-client-direct-upload.php:93
+msgid "The direct upload request failed."
+msgstr ""
+
+#: includes/trait-drime-client-direct-upload.php:112
+msgid "Drime rejected the direct upload request."
+msgstr ""
+
+#: includes/trait-drime-client-multipart.php:114
+msgid "A Drime upload part failed."
+msgstr ""
+
+#: includes/trait-drime-client-multipart.php:119
+msgid "Drime did not return an ETag for the uploaded part."
+msgstr ""
+
+#: includes/trait-drime-client-multipart.php:141
+msgid "Drime returned an unsafe upload URL."
+msgstr ""
+
+#: includes/trait-uploader-active-upload.php:55
+msgid "An upload is already marked active."
+msgstr ""
+
+#: includes/trait-uploader-multipart-parts.php:29
+msgid "Could not open the backup file for upload."
+msgstr ""
+
+#: includes/trait-uploader-multipart-parts.php:106
+msgid "Could not seek to the next backup chunk."
+msgstr ""
+
+#: includes/trait-uploader-multipart-parts.php:111
+msgid "Could not read the next backup chunk."
+msgstr ""
+
+#: includes/trait-uploader-multipart.php:98
+msgid "Drime did not return a multipart upload ID."
+msgstr ""
+
+#: includes/trait-uploader-multipart.php:159
+msgid "Drime did not return a signed upload URL."
+msgstr ""
+
+#: includes/trait-uploader-multipart.php:168
+msgid "Drime did not return the expected part URL."
+msgstr ""
+
+#: includes/trait-uploader-retry-state.php:48
+msgid "The queued backup reached the retry limit."
+msgstr ""

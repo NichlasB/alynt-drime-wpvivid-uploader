@@ -1,0 +1,52 @@
+<?php
+/**
+ * Admin page notice rendering.
+ *
+ * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Admin page notice rendering.
+ *
+ * @since 0.1.0
+ */
+trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Notices {
+	/**
+	 * Renders a notice.
+	 *
+	 * @param string $notice Notice key.
+	 * @return void
+	 */
+	private function render_notice( $notice ) {
+		$messages = array(
+			'settings_saved'        => array( 'success', __( 'Settings saved.', 'alynt-drime-wpvivid-uploader' ) ),
+			'connected'             => array( 'success', __( 'Connected to Drime successfully.', 'alynt-drime-wpvivid-uploader' ) ),
+			'scan_complete'         => array( 'success', __( 'Backup scan completed.', 'alynt-drime-wpvivid-uploader' ) ),
+			'scan_failed'           => array( 'error', __( 'The backup scan could not be completed. Check the detected backup path and recent events, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'upload_done'           => array( 'success', __( 'Upload completed.', 'alynt-drime-wpvivid-uploader' ) ),
+			'active_upload_cleared' => array( 'success', __( 'Active upload state cleared.', 'alynt-drime-wpvivid-uploader' ) ),
+			'diagnostics_cleared'   => array( 'success', __( 'Diagnostics cleared.', 'alynt-drime-wpvivid-uploader' ) ),
+			'settings_save_failed'  => array( 'error', __( 'Settings could not be saved. Confirm the site database is writable, then try again.', 'alynt-drime-wpvivid-uploader' ) ),
+			'action_failed'         => array( 'error', __( 'The action could not be completed. Review the recent events, adjust the settings, and try again.', 'alynt-drime-wpvivid-uploader' ) ),
+		);
+
+		if ( empty( $messages[ $notice ] ) ) {
+			return;
+		}
+
+		list( $type, $message ) = $messages[ $notice ];
+		$role                   = 'error' === $type ? 'alert' : 'status';
+
+		printf(
+			'<div class="notice notice-%1$s is-dismissible" role="%2$s"><p>%3$s</p></div>',
+			esc_attr( $type ),
+			esc_attr( $role ),
+			esc_html( $message )
+		);
+	}
+}

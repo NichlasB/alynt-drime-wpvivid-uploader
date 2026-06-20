@@ -3,6 +3,7 @@
  * Structured diagnostics log.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Stores a bounded redacted diagnostics event log.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Logger {
 	const OPTION_NAME = 'alynt_drime_wpvivid_logs';
@@ -26,6 +29,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * Constructor.
 	 *
 	 * @param Alynt_Drime_WPvivid_Uploader_Settings $settings Settings.
+	 *
+	 * @since 0.1.0
 	 */
 	public function __construct( Alynt_Drime_WPvivid_Uploader_Settings $settings ) {
 		$this->settings = $settings;
@@ -38,6 +43,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * @param string              $message Message.
 	 * @param array<string,mixed> $context Context.
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function log( $level, $message, array $context = array() ) {
 		$this->event( 'general', $level, 'event', $message, $context );
@@ -52,6 +59,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * @param string              $message Message.
 	 * @param array<string,mixed> $context Context.
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function event( $category, $level, $code, $message, array $context = array() ) {
 		$settings = $this->settings->get();
@@ -88,6 +97,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * Gets events.
 	 *
 	 * @return array<int,array<string,mixed>>
+	 *
+	 * @since 0.1.0
 	 */
 	public function get_events() {
 		$events = get_option( self::OPTION_NAME, array() );
@@ -99,6 +110,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * Clears all diagnostics events.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function clear() {
 		delete_option( self::OPTION_NAME );
@@ -108,6 +121,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * Builds a safe diagnostics export payload.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public function export_payload() {
 		$settings = $this->settings->get();
@@ -135,6 +150,8 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 	 * Returns basic diagnostics stats.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public function stats() {
 		$events = $this->get_events();
@@ -163,7 +180,7 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 			}
 
 			if ( is_scalar( $value ) ) {
-				$value = sanitize_text_field( (string) $value );
+				$value            = $this->redact_scalar_value( sanitize_text_field( (string) $value ) );
 				$redacted[ $key ] = strlen( $value ) > 300 ? substr( $value, 0, 300 ) . '...' : $value;
 				continue;
 			}
@@ -172,6 +189,19 @@ class Alynt_Drime_WPvivid_Uploader_Logger {
 		}
 
 		return $redacted;
+	}
+
+	/**
+	 * Redacts sensitive substrings that may be embedded in otherwise safe fields.
+	 *
+	 * @param string $value Value.
+	 * @return string
+	 */
+	private function redact_scalar_value( $value ) {
+		$value = preg_replace( '/Bearer\s+[A-Za-z0-9._~+\/=-]+/i', 'Bearer [redacted]', $value );
+		$value = preg_replace( '#https?://\S+#i', '[redacted-url]', (string) $value );
+
+		return (string) $value;
 	}
 
 	/**

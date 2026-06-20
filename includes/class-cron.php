@@ -3,6 +3,7 @@
  * Cron integration.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Registers and handles WP-Cron events.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Cron {
 	const SCAN_EVENT   = 'alynt_drime_wpvivid_scan_event';
@@ -27,6 +30,8 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * Constructor.
 	 *
 	 * @param Alynt_Drime_WPvivid_Uploader_Plugin $plugin Plugin.
+	 *
+	 * @since 0.1.0
 	 */
 	public function __construct( Alynt_Drime_WPvivid_Uploader_Plugin $plugin ) {
 		$this->plugin = $plugin;
@@ -36,6 +41,8 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * Adds cron hooks.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function hooks() {
 		add_filter( 'cron_schedules', array( $this, 'add_schedules' ) );
@@ -49,6 +56,8 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 *
 	 * @param array<string,array<string,mixed>> $schedules Schedules.
 	 * @return array<string,array<string,mixed>>
+	 *
+	 * @since 0.1.0
 	 */
 	public function add_schedules( $schedules ) {
 		$schedules['fifteen_minutes'] = array(
@@ -63,6 +72,8 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * Schedules or clears events.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function maybe_schedule() {
 		$settings = $this->plugin->settings()->get();
@@ -85,16 +96,34 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * Clears scheduled events.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function clear() {
-		wp_clear_scheduled_hook( self::SCAN_EVENT );
-		wp_clear_scheduled_hook( self::UPLOAD_EVENT );
+		$this->clear_scheduled_hook( self::SCAN_EVENT );
+		$this->clear_scheduled_hook( self::UPLOAD_EVENT );
+	}
+
+	/**
+	 * Clears a hook only when an event is scheduled.
+	 *
+	 * @param string $hook Hook.
+	 * @return void
+	 *
+	 * @since 0.1.0
+	 */
+	private function clear_scheduled_hook( $hook ) {
+		if ( wp_next_scheduled( $hook ) ) {
+			wp_clear_scheduled_hook( $hook );
+		}
 	}
 
 	/**
 	 * Runs a scan.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function scan() {
 		$this->plugin->logger()->event( 'cron', 'info', 'scan_started', 'Scheduled scan started.' );
@@ -106,6 +135,8 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * Uploads next queued file.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public function upload() {
 		$this->plugin->logger()->event( 'cron', 'info', 'upload_worker_started', 'Scheduled upload worker started.' );

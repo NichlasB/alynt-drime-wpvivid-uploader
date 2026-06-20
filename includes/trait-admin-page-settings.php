@@ -1,0 +1,212 @@
+<?php
+/**
+ * Admin page settings form rendering.
+ *
+ * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Admin page settings form rendering.
+ *
+ * @since 0.1.0
+ */
+trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
+	/**
+	 * Renders the settings form.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @param string              $detected_path Detected path.
+	 * @return void
+	 */
+	private function render_settings_form( array $settings, $detected_path ) {
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="alynt_drime_wpvivid_save_settings">
+			<?php wp_nonce_field( 'alynt_drime_wpvivid_save_settings' ); ?>
+			<?php $this->render_drime_settings( $settings ); ?>
+			<?php $this->render_source_settings( $settings, $detected_path ); ?>
+			<?php $this->render_behavior_settings( $settings ); ?>
+			<?php submit_button( __( 'Save Settings', 'alynt-drime-wpvivid-uploader' ), 'primary', 'submit', true, array( 'data-alynt-loading-label' => __( 'Saving...', 'alynt-drime-wpvivid-uploader' ) ) ); ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Renders Drime settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return void
+	 */
+	private function render_drime_settings( array $settings ) {
+		?>
+		<h2><?php esc_html_e( 'Drime', 'alynt-drime-wpvivid-uploader' ); ?></h2>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><label for="alynt-api-token"><?php esc_html_e( 'API Token', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+				<td>
+					<input id="alynt-api-token" name="alynt_drime_wpvivid_settings[api_token]" type="password" class="regular-text" value="<?php echo esc_attr( '' === $settings['api_token'] ? '' : '************' ); ?>" autocomplete="off" aria-describedby="alynt-api-token-description">
+					<p id="alynt-api-token-description" class="description"><?php esc_html_e( 'Enter a Drime bearer token. Leave the masked value unchanged to keep the saved token.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="alynt-workspace-id"><?php esc_html_e( 'Workspace ID', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+				<td>
+					<input id="alynt-workspace-id" name="alynt_drime_wpvivid_settings[workspace_id]" type="number" min="0" value="<?php echo esc_attr( (string) $settings['workspace_id'] ); ?>" aria-describedby="alynt-workspace-id-description">
+					<p id="alynt-workspace-id-description" class="description"><?php esc_html_e( 'Use 0 for your personal/default Drime workspace.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="alynt-parent-folder-id"><?php esc_html_e( 'Parent Folder ID', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+				<td>
+					<input id="alynt-parent-folder-id" name="alynt_drime_wpvivid_settings[parent_folder_id]" type="number" min="0" value="<?php echo esc_attr( (string) $settings['parent_folder_id'] ); ?>" aria-describedby="alynt-parent-folder-id-description">
+					<p id="alynt-parent-folder-id-description" class="description"><?php esc_html_e( 'Leave empty for the Drime root folder. You can also use a relative path below.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="alynt-relative-path"><?php esc_html_e( 'Relative Path', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+				<td>
+					<input id="alynt-relative-path" name="alynt_drime_wpvivid_settings[relative_path]" type="text" class="regular-text" value="<?php echo esc_attr( (string) $settings['relative_path'] ); ?>" placeholder="<?php echo esc_attr__( '/WPvivid Backups', 'alynt-drime-wpvivid-uploader' ); ?>" aria-describedby="alynt-relative-path-description">
+					<p id="alynt-relative-path-description" class="description"><?php esc_html_e( 'Optional Drime folder path. Drime can auto-create missing folders when this is provided.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Renders source settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @param string              $detected_path Detected path.
+	 * @return void
+	 */
+	private function render_source_settings( array $settings, $detected_path ) {
+		?>
+		<h2><?php esc_html_e( 'WPvivid Source', 'alynt-drime-wpvivid-uploader' ); ?></h2>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Detected Backup Path', 'alynt-drime-wpvivid-uploader' ); ?></th>
+				<td><code><?php echo esc_html( $detected_path ); ?></code></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="alynt-backup-path-override"><?php esc_html_e( 'Backup Path Override', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+				<td>
+					<input id="alynt-backup-path-override" name="alynt_drime_wpvivid_settings[backup_path_override]" type="text" class="large-text code" value="<?php echo esc_attr( (string) $settings['backup_path_override'] ); ?>" aria-describedby="alynt-backup-path-override-description">
+					<p id="alynt-backup-path-override-description" class="description"><?php esc_html_e( 'Optional. Use only if WPvivid stores local backups outside the detected path.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Renders behavior settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return void
+	 */
+	private function render_behavior_settings( array $settings ) {
+		?>
+		<h2><?php esc_html_e( 'Behavior', 'alynt-drime-wpvivid-uploader' ); ?></h2>
+		<table class="form-table" role="presentation">
+			<?php $this->render_upload_behavior_settings( $settings ); ?>
+			<?php $this->render_diagnostics_settings( $settings ); ?>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Renders upload behavior settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return void
+	 */
+	private function render_upload_behavior_settings( array $settings ) {
+		?>
+		<tr>
+			<th scope="row"><label for="alynt-duplicate-mode"><?php esc_html_e( 'Duplicate Handling', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<select id="alynt-duplicate-mode" name="alynt_drime_wpvivid_settings[duplicate_mode]" aria-describedby="alynt-duplicate-mode-description">
+					<option value="skip" <?php selected( $settings['duplicate_mode'], 'skip' ); ?>><?php esc_html_e( 'Skip existing files', 'alynt-drime-wpvivid-uploader' ); ?></option>
+					<option value="rename" <?php selected( $settings['duplicate_mode'], 'rename' ); ?>><?php esc_html_e( 'Rename new uploads', 'alynt-drime-wpvivid-uploader' ); ?></option>
+				</select>
+				<p id="alynt-duplicate-mode-description" class="description"><?php esc_html_e( 'Choose whether existing Drime filenames are skipped or renamed during upload.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-auto-scan"><?php esc_html_e( 'Automatic Scanning', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td><label><input id="alynt-auto-scan" name="alynt_drime_wpvivid_settings[auto_scan_enabled]" type="checkbox" value="1" <?php checked( ! empty( $settings['auto_scan_enabled'] ) ); ?>> <?php esc_html_e( 'Scan with WP-Cron every 15 minutes.', 'alynt-drime-wpvivid-uploader' ); ?></label></td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-min-file-age"><?php esc_html_e( 'Minimum File Age', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<input id="alynt-min-file-age" name="alynt_drime_wpvivid_settings[min_file_age_seconds]" type="number" min="60" step="60" value="<?php echo esc_attr( (string) $settings['min_file_age_seconds'] ); ?>" aria-describedby="alynt-min-file-age-description">
+				<p id="alynt-min-file-age-description" class="description"><?php esc_html_e( 'Files must also keep the same size across scans before they are queued.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-delete-local"><?php esc_html_e( 'Delete Local Files', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<label><input id="alynt-delete-local" name="alynt_drime_wpvivid_settings[delete_local_after_upload]" type="checkbox" value="1" <?php checked( ! empty( $settings['delete_local_after_upload'] ) ); ?> aria-describedby="alynt-delete-local-description"> <?php esc_html_e( 'Delete local backup files after confirmed Drime upload.', 'alynt-drime-wpvivid-uploader' ); ?></label>
+				<p id="alynt-delete-local-description" class="description"><?php esc_html_e( 'Keep this off until end-to-end testing is complete.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-max-retries"><?php esc_html_e( 'Maximum Retries', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<input id="alynt-max-retries" name="alynt_drime_wpvivid_settings[max_retries]" type="number" min="0" max="10" value="<?php echo esc_attr( (string) $settings['max_retries'] ); ?>" aria-describedby="alynt-max-retries-description">
+				<p id="alynt-max-retries-description" class="description"><?php esc_html_e( 'Set the number of failed upload attempts before a queued file is removed.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Renders diagnostics settings.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return void
+	 */
+	private function render_diagnostics_settings( array $settings ) {
+		$level_labels = array(
+			'debug'    => __( 'Debug', 'alynt-drime-wpvivid-uploader' ),
+			'info'     => __( 'Info', 'alynt-drime-wpvivid-uploader' ),
+			'warning'  => __( 'Warning', 'alynt-drime-wpvivid-uploader' ),
+			'error'    => __( 'Error', 'alynt-drime-wpvivid-uploader' ),
+			'critical' => __( 'Critical', 'alynt-drime-wpvivid-uploader' ),
+		);
+
+		?>
+		<tr>
+			<th scope="row"><label for="alynt-diagnostics-enabled"><?php esc_html_e( 'Diagnostics', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<label><input id="alynt-diagnostics-enabled" name="alynt_drime_wpvivid_settings[diagnostics_enabled]" type="checkbox" value="1" <?php checked( ! empty( $settings['diagnostics_enabled'] ) ); ?> aria-describedby="alynt-diagnostics-enabled-description"> <?php esc_html_e( 'Store redacted diagnostic events.', 'alynt-drime-wpvivid-uploader' ); ?></label>
+				<p id="alynt-diagnostics-enabled-description" class="description"><?php esc_html_e( 'Events are stored locally and exclude tokens, request bodies, and signed URLs.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-diagnostics-min-level"><?php esc_html_e( 'Diagnostics Level', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<select id="alynt-diagnostics-min-level" name="alynt_drime_wpvivid_settings[diagnostics_min_level]" aria-describedby="alynt-diagnostics-min-level-description">
+					<?php foreach ( array_keys( Alynt_Drime_WPvivid_Uploader_Settings::severity_levels() ) as $level ) : ?>
+						<option value="<?php echo esc_attr( $level ); ?>" <?php selected( $settings['diagnostics_min_level'], $level ); ?>><?php echo esc_html( isset( $level_labels[ $level ] ) ? $level_labels[ $level ] : $level ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<p id="alynt-diagnostics-min-level-description" class="description"><?php esc_html_e( 'Only events at this severity or higher are stored.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="alynt-diagnostics-retention"><?php esc_html_e( 'Diagnostics Retention', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<input id="alynt-diagnostics-retention" name="alynt_drime_wpvivid_settings[diagnostics_retention]" type="number" min="25" max="500" step="25" value="<?php echo esc_attr( (string) $settings['diagnostics_retention'] ); ?>" aria-describedby="alynt-diagnostics-retention-description">
+				<p id="alynt-diagnostics-retention-description" class="description"><?php esc_html_e( 'Maximum local diagnostic events to retain.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+}

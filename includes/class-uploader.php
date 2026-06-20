@@ -3,6 +3,7 @@
  * Upload worker.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,8 +12,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Processes queued uploads one at a time.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Uploader {
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Active_Upload;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Retry_State;
+
+	const STALE_ACTIVE_UPLOAD_SECONDS = 6 * 60 * 60;
+	const UPLOAD_LOCK_OPTION          = 'alynt_drime_wpvivid_upload_lock';
+	const UPLOAD_LOCK_TTL             = 10 * 60;
+
 	/**
 	 * Settings.
 	 *
@@ -56,6 +68,8 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	 * @param Alynt_Drime_WPvivid_Uploader_Queue           $queue Queue.
 	 * @param Alynt_Drime_WPvivid_Uploader_Backup_Registry $registry Registry.
 	 * @param Alynt_Drime_WPvivid_Uploader_Logger          $logger Logger.
+	 *
+	 * @since 0.1.0
 	 */
 	public function __construct( Alynt_Drime_WPvivid_Uploader_Settings $settings, Alynt_Drime_WPvivid_Uploader_Drime_Client $client, Alynt_Drime_WPvivid_Uploader_Queue $queue, Alynt_Drime_WPvivid_Uploader_Backup_Registry $registry, Alynt_Drime_WPvivid_Uploader_Logger $logger ) {
 		$this->settings = $settings;
@@ -69,28 +83,226 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	 * Uploads the next queued item.
 	 *
 	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.1.0
 	 */
 	public function upload_next() {
-		$item = $this->queue->next();
-		if ( null === $item ) {
-			return new WP_Error( 'alynt_drime_queue_empty', __( 'There are no queued backups to upload.', 'alynt-drime-wpvivid-uploader' ) );
+		if ( ! $this->acquire_upload_lock() ) {
+			return new WP_Error( 'alynt_drime_upload_locked', __( 'Another backup upload is already running. Please try again shortly.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
-		$result = $this->upload_item( $item );
+		try {
+			$item = $this->queue->next();
+			if ( null === $item ) {
+				return new WP_Error( 'alynt_drime_queue_empty', __( 'There are no queued backups to upload.', 'alynt-drime-wpvivid-uploader' ) );
+			}
 
-		if ( is_wp_error( $result ) ) {
-			$this->queue->increment_attempts( (string) $item['signature'] );
-			$this->registry->mark_failed( (string) $item['signature'], $result->get_error_message() );
-			$this->logger->event( 'upload', 'error', 'upload_failed', 'Upload failed.', array( 'file' => basename( (string) $item['path'] ), 'reason' => $result->get_error_message() ) );
-			return $result;
+			$active_check = $this->recover_active_upload_state( $item );
+			if ( is_wp_error( $active_check ) ) {
+				return $active_check;
+			}
+
+			if ( $this->has_exhausted_retries( $item ) ) {
+				return $this->fail_exhausted_item( $item );
+			}
+
+			$result = $this->upload_item( $item );
+
+			return is_wp_error( $result ) ? $this->handle_failed_upload( $item, $result ) : $this->complete_successful_upload( $item, $result );
+		} finally {
+			$this->release_upload_lock();
+		}
+	}
+
+	/**
+	 * Handles a failed queued upload.
+	 *
+	 * @param array<string,mixed> $item Queue item.
+	 * @param WP_Error            $result Upload error.
+	 * @return WP_Error
+	 *
+	 * @since 0.1.0
+	 */
+	private function handle_failed_upload( array $item, WP_Error $result ) {
+		if ( ! $this->queue->set_active( null ) ) {
+			return $this->state_persistence_error();
 		}
 
-		$this->registry->mark_uploaded( (string) $item['signature'], $result );
-		$this->queue->remove( (string) $item['signature'] );
-		$this->queue->set_active( null );
-		$this->logger->event( 'upload', 'info', 'upload_completed', 'Upload completed.', array( 'file' => basename( (string) $item['path'] ) ) );
+		$attempts = $this->queue->increment_attempts( (string) $item['signature'] );
+		if ( 0 === $attempts ) {
+			return $this->state_persistence_error();
+		}
+
+		if ( ! $this->registry->mark_failed( (string) $item['signature'], $result->get_error_message() ) ) {
+			return $this->state_persistence_error();
+		}
+
+		$this->logger->event(
+			'upload',
+			'error',
+			'upload_failed',
+			'Upload failed.',
+			array(
+				'file'   => basename( (string) $item['path'] ),
+				'reason' => $result->get_error_message(),
+			)
+		);
+
+		if ( $this->attempts_reached_limit( $attempts ) ) {
+			$removed = $this->remove_retry_limited_item( $item, $attempts );
+			if ( is_wp_error( $removed ) ) {
+				return $removed;
+			}
+		}
 
 		return $result;
+	}
+
+	/**
+	 * Removes a queued item that reached the retry limit.
+	 *
+	 * @param array<string,mixed> $item Queue item.
+	 * @param int                 $attempts Attempts.
+	 * @return true|WP_Error
+	 */
+	private function remove_retry_limited_item( array $item, $attempts ) {
+		if ( ! $this->queue->remove( (string) $item['signature'] ) ) {
+			return $this->state_persistence_error();
+		}
+
+		$this->logger->event(
+			'upload',
+			'error',
+			'upload_retry_limit_reached',
+			'Upload retry limit reached; item removed from queue.',
+			array(
+				'file'     => basename( (string) $item['path'] ),
+				'attempts' => $attempts,
+			)
+		);
+
+		return true;
+	}
+
+	/**
+	 * Handles a successful queued upload.
+	 *
+	 * @param array<string,mixed> $item Queue item.
+	 * @param array<string,mixed> $result Upload result.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	private function complete_successful_upload( array $item, array $result ) {
+		$this->remember_remote_parent_from_result( $result );
+
+		if ( ! $this->registry->mark_uploaded( (string) $item['signature'], $result ) ) {
+			return $this->state_persistence_error();
+		}
+
+		if ( ! $this->queue->remove( (string) $item['signature'] ) ) {
+			return $this->state_persistence_error();
+		}
+
+		if ( ! $this->queue->set_active( null ) ) {
+			return $this->state_persistence_error();
+		}
+
+		$this->logger->event( 'upload', 'info', 'upload_completed', 'Upload completed.', array( 'file' => basename( (string) $item['path'] ) ) );
+		$this->maybe_delete_local_file( $item );
+
+		return $result;
+	}
+
+	/**
+	 * Deletes a local backup after successful upload when enabled.
+	 *
+	 * @param array<string,mixed> $item Queue item.
+	 * @return void
+	 */
+	private function maybe_delete_local_file( array $item ) {
+		$settings = $this->settings->get();
+
+		if ( empty( $settings['delete_local_after_upload'] ) ) {
+			return;
+		}
+
+		$path = isset( $item['path'] ) ? (string) $item['path'] : '';
+		if ( '' === $path || ! is_file( $path ) ) {
+			$this->logger->event( 'filesystem', 'warning', 'local_delete_missing_file', 'Local backup deletion was skipped because the file no longer exists.' );
+			return;
+		}
+
+		if ( ! wp_delete_file( $path ) ) {
+			$this->logger->event( 'filesystem', 'error', 'local_delete_failed', 'Local backup deletion failed after upload.', array( 'file' => basename( $path ) ) );
+			return;
+		}
+
+		$this->logger->event( 'filesystem', 'info', 'local_delete_succeeded', 'Local backup file deleted after upload.', array( 'file' => basename( $path ) ) );
+	}
+
+	/**
+	 * Clears active upload state and aborts the remote multipart upload when possible.
+	 *
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.1.0
+	 */
+	public function clear_active_upload() {
+		$active = $this->queue->get_active();
+
+		$abort = $this->abort_active_upload( $active, 'manual_active_upload_abort' );
+		if ( is_wp_error( $abort ) ) {
+			return $abort;
+		}
+
+		if ( ! $this->queue->clear_active() ) {
+			return $this->state_persistence_error();
+		}
+
+		return $active;
+	}
+
+	/**
+	 * Returns a consistent state-persistence error.
+	 *
+	 * @return WP_Error
+	 */
+	private function state_persistence_error() {
+		return new WP_Error( 'alynt_drime_state_save_failed', __( 'The upload state could not be saved. Check that the WordPress database is writable, then try again.', 'alynt-drime-wpvivid-uploader' ) );
+	}
+
+	/**
+	 * Acquires a short upload worker lock.
+	 *
+	 * @return bool
+	 */
+	private function acquire_upload_lock() {
+		$lock = get_option( self::UPLOAD_LOCK_OPTION, array() );
+
+		if ( is_array( $lock ) && ! empty( $lock['expires'] ) && absint( $lock['expires'] ) > time() ) {
+			return false;
+		}
+
+		if ( ! empty( $lock ) ) {
+			delete_option( self::UPLOAD_LOCK_OPTION );
+		}
+
+		return add_option(
+			self::UPLOAD_LOCK_OPTION,
+			array(
+				'expires' => time() + self::UPLOAD_LOCK_TTL,
+			),
+			'',
+			false
+		);
+	}
+
+	/**
+	 * Releases the upload worker lock.
+	 *
+	 * @return void
+	 */
+	private function release_upload_lock() {
+		delete_option( self::UPLOAD_LOCK_OPTION );
 	}
 
 	/**
@@ -113,30 +325,53 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 			return new WP_Error( 'alynt_drime_empty_file', __( 'The queued backup file is empty.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
-		$remote_name = $this->resolve_duplicate_mode( $remote_name, (int) $size, $settings );
-		if ( is_wp_error( $remote_name ) ) {
-			return $remote_name;
+		$remote_name = $this->preflight_remote_name( $remote_name, (int) $size, $settings );
+		if ( is_wp_error( $remote_name ) || false === $remote_name ) {
+			return false === $remote_name ? new WP_Error( 'alynt_drime_duplicate_skipped', __( 'A file with this name already exists in Drime, so the upload was skipped.', 'alynt-drime-wpvivid-uploader' ) ) : $remote_name;
 		}
 
-		if ( false === $remote_name ) {
-			return new WP_Error( 'alynt_drime_duplicate_skipped', __( 'A file with this name already exists in Drime, so the upload was skipped.', 'alynt-drime-wpvivid-uploader' ) );
+		return $size < Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE
+			? $this->simple_upload_item( $path, $remote_name, (int) $size )
+			: $this->multipart_upload( $path, $remote_name, (int) $size, $item );
+	}
+
+	/**
+	 * Runs connection and duplicate preflight checks.
+	 *
+	 * @param string              $remote_name Remote name.
+	 * @param int                 $size Size.
+	 * @param array<string,mixed> $settings Settings.
+	 * @return string|false|WP_Error
+	 */
+	private function preflight_remote_name( $remote_name, $size, array $settings ) {
+		$connection = $this->client->test_connection();
+		if ( is_wp_error( $connection ) ) {
+			return $connection;
 		}
 
-		if ( $size < Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE ) {
-			$response = $this->client->simple_upload( $path, $remote_name );
-			if ( is_wp_error( $response ) ) {
-				return $response;
-			}
+		return $this->resolve_duplicate_mode( $remote_name, $size, $settings );
+	}
 
-			return array(
-				'path'        => $path,
-				'remote_name' => $remote_name,
-				'size'        => $size,
-				'drime'       => $response,
-			);
+	/**
+	 * Uploads a small queued item.
+	 *
+	 * @param string $path File path.
+	 * @param string $remote_name Remote name.
+	 * @param int    $size Size.
+	 * @return array<string,mixed>|WP_Error
+	 */
+	private function simple_upload_item( $path, $remote_name, $size ) {
+		$response = $this->client->simple_upload( $path, $remote_name );
+		if ( is_wp_error( $response ) ) {
+			return $response;
 		}
 
-		return $this->multipart_upload( $path, $remote_name, (int) $size );
+		return array(
+			'path'        => $path,
+			'remote_name' => $remote_name,
+			'size'        => $size,
+			'drime'       => $response,
+		);
 	}
 
 	/**
@@ -148,16 +383,17 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	 * @return string|false|WP_Error
 	 */
 	private function resolve_duplicate_mode( $remote_name, $size, array $settings ) {
-		$relative_path = '' !== $settings['relative_path'] ? $settings['relative_path'] : '/';
-		$validation    = $this->client->validate_upload(
-			array(
-				array(
-					'name'         => $remote_name,
-					'size'         => $size,
-					'relativePath' => $relative_path,
-				),
-			)
+		$parent_id = $this->resolved_drime_parent_id( $settings );
+		$file      = array(
+			'name' => $remote_name,
+			'size' => $size,
 		);
+
+		if ( $parent_id <= 0 ) {
+			$file['relativePath'] = '' !== $settings['relative_path'] ? $settings['relative_path'] : '/';
+		}
+
+		$validation = $this->client->validate_upload( array( $file ), $parent_id > 0 ? $parent_id : null );
 
 		if ( is_wp_error( $validation ) ) {
 			return $validation;
@@ -172,125 +408,44 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 			return false;
 		}
 
-		return $this->client->get_available_name( $remote_name );
+		return $this->client->get_available_name( $remote_name, $parent_id > 0 ? $parent_id : null );
 	}
 
 	/**
-	 * Uploads a file through Drime multipart flow.
+	 * Resolves the Drime parent ID available for duplicate checks.
 	 *
-	 * @param string $path Path.
-	 * @param string $remote_name Remote name.
-	 * @param int    $size Size.
-	 * @return array<string,mixed>|WP_Error
+	 * @param array<string,mixed> $settings Settings.
+	 * @return int
 	 */
-	private function multipart_upload( $path, $remote_name, $size ) {
-		$extension = pathinfo( $remote_name, PATHINFO_EXTENSION );
-		$extension = '' === $extension ? 'zip' : strtolower( $extension );
-		$this->logger->event( 'upload', 'info', 'multipart_started', 'Multipart upload started.', array( 'file' => $remote_name, 'size' => $size ) );
-		$created   = $this->client->create_multipart_upload( $remote_name, $size, $extension );
-
-		if ( is_wp_error( $created ) ) {
-			return $created;
+	private function resolved_drime_parent_id( array $settings ) {
+		if ( ! empty( $settings['parent_folder_id'] ) ) {
+			return absint( $settings['parent_folder_id'] );
 		}
 
-		if ( empty( $created['key'] ) || empty( $created['uploadId'] ) ) {
-			return new WP_Error( 'alynt_drime_bad_multipart_create', __( 'Drime did not return a multipart upload ID.', 'alynt-drime-wpvivid-uploader' ) );
+		if ( empty( $settings['relative_path'] ) ) {
+			return 0;
 		}
 
-		$key        = (string) $created['key'];
-		$upload_id  = (string) $created['uploadId'];
-		$total      = (int) ceil( $size / Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE );
-		$parts      = array();
-		$handle     = fopen( $path, 'rb' );
-
-		if ( false === $handle ) {
-			return new WP_Error( 'alynt_drime_file_open_failed', __( 'Could not open the backup file for upload.', 'alynt-drime-wpvivid-uploader' ) );
-		}
-
-		for ( $part_number = 1; $part_number <= $total; $part_number++ ) {
-			$sign_response = $this->client->sign_part_urls( $key, $upload_id, array( $part_number ) );
-			if ( is_wp_error( $sign_response ) ) {
-				fclose( $handle );
-				return $sign_response;
-			}
-
-			$url = $this->extract_signed_url( $sign_response, $part_number );
-			if ( is_wp_error( $url ) ) {
-				fclose( $handle );
-				return $url;
-			}
-
-			$data = fread( $handle, Alynt_Drime_WPvivid_Uploader_Drime_Client::MULTIPART_SIZE );
-			if ( false === $data ) {
-				fclose( $handle );
-				return new WP_Error( 'alynt_drime_file_read_failed', __( 'Could not read the next backup chunk.', 'alynt-drime-wpvivid-uploader' ) );
-			}
-
-			$etag = $this->client->upload_part( $url, $data );
-			if ( is_wp_error( $etag ) ) {
-				fclose( $handle );
-				return $etag;
-			}
-
-			$parts[] = array(
-				'PartNumber' => $part_number,
-				'ETag'       => $etag,
-			);
-
-			$this->queue->set_active(
-				array(
-					'local_file'      => $path,
-					'remote_name'     => $remote_name,
-					'key'             => $key,
-					'upload_id'       => $upload_id,
-					'completed_parts' => count( $parts ),
-					'total_parts'     => $total,
-					'updated_at'      => time(),
-				)
-			);
-		}
-
-		fclose( $handle );
-
-		$completed = $this->client->complete_multipart_upload( $key, $upload_id, $parts );
-		if ( is_wp_error( $completed ) ) {
-			return $completed;
-		}
-
-		$this->logger->event( 'upload', 'info', 'multipart_completed', 'Multipart upload completed.', array( 'file' => $remote_name, 'parts' => count( $parts ) ) );
-
-		$entry = $this->client->create_s3_entry( $key, $remote_name, $size, $extension );
-		if ( is_wp_error( $entry ) ) {
-			return $entry;
-		}
-
-		return array(
-			'path'        => $path,
-			'remote_name' => $remote_name,
-			'size'        => $size,
-			'key'         => $key,
-			'drime'       => $entry,
-		);
+		return $this->registry->get_drime_parent_id( absint( $settings['workspace_id'] ), (string) $settings['relative_path'] );
 	}
 
 	/**
-	 * Extracts a signed URL for a part.
+	 * Remembers the Drime parent ID returned after a relative-path upload.
 	 *
-	 * @param array<string,mixed> $sign_response Sign response.
-	 * @param int                 $part_number Part number.
-	 * @return string|WP_Error
+	 * @param array<string,mixed> $result Upload result.
+	 * @return void
 	 */
-	private function extract_signed_url( array $sign_response, $part_number ) {
-		if ( empty( $sign_response['urls'] ) || ! is_array( $sign_response['urls'] ) ) {
-			return new WP_Error( 'alynt_drime_missing_signed_url', __( 'Drime did not return a signed upload URL.', 'alynt-drime-wpvivid-uploader' ) );
+	private function remember_remote_parent_from_result( array $result ) {
+		$settings = $this->settings->get();
+
+		if ( empty( $settings['relative_path'] ) ) {
+			return;
 		}
 
-		foreach ( $sign_response['urls'] as $signed ) {
-			if ( is_array( $signed ) && isset( $signed['partNumber'], $signed['url'] ) && (int) $signed['partNumber'] === (int) $part_number ) {
-				return (string) $signed['url'];
-			}
+		if ( empty( $result['drime']['fileEntry'] ) || ! is_array( $result['drime']['fileEntry'] ) || empty( $result['drime']['fileEntry']['parent_id'] ) ) {
+			return;
 		}
 
-		return new WP_Error( 'alynt_drime_missing_part_url', __( 'Drime did not return the expected part URL.', 'alynt-drime-wpvivid-uploader' ) );
+		$this->registry->remember_drime_location( absint( $settings['workspace_id'] ), (string) $settings['relative_path'], absint( $result['drime']['fileEntry']['parent_id'] ) );
 	}
 }

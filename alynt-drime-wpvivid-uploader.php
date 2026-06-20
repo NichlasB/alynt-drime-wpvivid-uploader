@@ -14,6 +14,7 @@
  * Domain Path:       /languages
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,12 +22,66 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.1.0' );
+define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP', '6.0' );
+define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP', '7.4' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_FILE', __FILE__ );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_URL', plugin_dir_url( __FILE__ ) );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_BASENAME', plugin_basename( __FILE__ ) );
 
+/**
+ * Returns whether the current environment can load the plugin safely.
+ *
+ * @return bool
+ */
+function alynt_drime_wpvivid_uploader_meets_requirements() {
+	$wp_version = isset( $GLOBALS['wp_version'] ) ? (string) $GLOBALS['wp_version'] : ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP;
+
+	return version_compare( PHP_VERSION, ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP, '>=' )
+		&& version_compare( $wp_version, ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP, '>=' );
+}
+
+/**
+ * Renders a requirements notice when the plugin cannot load.
+ *
+ * @return void
+ */
+function alynt_drime_wpvivid_uploader_requirements_notice() {
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	printf(
+		'<div class="notice notice-error"><p>%s</p></div>',
+		esc_html(
+			sprintf(
+				/* translators: 1: minimum WordPress version, 2: minimum PHP version. */
+				__( 'Alynt Drime WPvivid Uploader requires WordPress %1$s or higher and PHP %2$s or higher.', 'alynt-drime-wpvivid-uploader' ),
+				ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP,
+				ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP
+			)
+		)
+	);
+}
+
+if ( ! alynt_drime_wpvivid_uploader_meets_requirements() ) {
+	add_action( 'admin_notices', 'alynt_drime_wpvivid_uploader_requirements_notice' );
+	return;
+}
+
 $alynt_drime_wpvivid_uploader_includes = array(
+	'includes/trait-scanner-metadata.php',
+	'includes/trait-drime-client-direct-upload.php',
+	'includes/trait-drime-client-multipart.php',
+	'includes/trait-uploader-active-upload.php',
+	'includes/trait-uploader-multipart.php',
+	'includes/trait-uploader-multipart-parts.php',
+	'includes/trait-uploader-retry-state.php',
+	'includes/trait-option-storage.php',
+	'includes/trait-admin-page-notices.php',
+	'includes/trait-admin-page-settings.php',
+	'includes/trait-admin-page-status.php',
+	'includes/trait-plugin-admin-actions.php',
 	'includes/class-settings.php',
 	'includes/class-logger.php',
 	'includes/class-wpvivid-detector.php',
@@ -48,6 +103,21 @@ foreach ( $alynt_drime_wpvivid_uploader_includes as $alynt_drime_wpvivid_uploade
 
 register_activation_hook( __FILE__, array( 'Alynt_Drime_WPvivid_Uploader_Activator', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'Alynt_Drime_WPvivid_Uploader_Deactivator', 'deactivate' ) );
+
+/**
+ * Loads the plugin text domain.
+ *
+ * @return void
+ */
+function alynt_drime_wpvivid_uploader_load_textdomain() {
+	load_plugin_textdomain(
+		'alynt-drime-wpvivid-uploader',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages'
+	);
+}
+
+add_action( 'plugins_loaded', 'alynt_drime_wpvivid_uploader_load_textdomain', 0 );
 
 /**
  * Returns the plugin singleton.

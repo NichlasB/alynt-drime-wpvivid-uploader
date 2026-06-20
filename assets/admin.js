@@ -16,6 +16,7 @@
 		}
 
 		button.disabled = true;
+		button.setAttribute( 'aria-disabled', 'true' );
 		button.setAttribute( 'aria-busy', 'true' );
 	}, true );
 }() );

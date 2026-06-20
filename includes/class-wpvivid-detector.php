@@ -3,6 +3,7 @@
  * WPvivid backup path detection.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Detects the WPvivid local backup directory defensively.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_WPvivid_Detector {
 	/**
@@ -18,52 +21,69 @@ class Alynt_Drime_WPvivid_Uploader_WPvivid_Detector {
 	 *
 	 * @param array<string,mixed> $settings Settings.
 	 * @return string
+	 *
+	 * @since 0.1.0
 	 */
 	public function get_backup_dir( array $settings ) {
 		if ( ! empty( $settings['backup_path_override'] ) ) {
-			return untrailingslashit( (string) $settings['backup_path_override'] );
+			return $this->normalize_path( (string) $settings['backup_path_override'] );
 		}
 
-		$option_candidates = array(
-			get_option( 'wpvivid_common_setting', array() ),
-			get_option( 'wpvivid_local_setting', array() ),
-			get_option( 'wpvivid_backup_remote_options', array() ),
-		);
+		$common = get_option( 'wpvivid_common_setting', array() );
+		$local  = get_option( 'wpvivid_local_setting', array() );
 
-		foreach ( $option_candidates as $candidate ) {
-			$path = $this->find_path_in_value( $candidate );
-			if ( '' !== $path && is_dir( $path ) ) {
-				return untrailingslashit( $path );
-			}
+		if ( ! is_array( $common ) ) {
+			$common = array();
 		}
 
-		return untrailingslashit( WP_CONTENT_DIR . '/wpvividbackups' );
+		if ( ! is_array( $local ) ) {
+			$local = array();
+		}
+
+		$folder_mode = isset( $common['local_backup_folder'] ) ? (string) $common['local_backup_folder'] : 'content_folder';
+
+		if ( 'outside_folder' === $folder_mode && ! empty( $local['outside_path'] ) ) {
+			return $this->normalize_path( (string) $local['outside_path'] );
+		}
+
+		$relative_path = isset( $local['path'] ) && '' !== (string) $local['path'] ? (string) $local['path'] : 'wpvividbackups';
+
+		return $this->normalize_backup_path( $relative_path );
 	}
 
 	/**
-	 * Recursively searches option values for a plausible backup path.
+	 * Normalizes a WPvivid content-relative or absolute backup path.
 	 *
-	 * @param mixed $value Value.
+	 * @param string $path Path.
 	 * @return string
 	 */
-	private function find_path_in_value( $value ) {
-		if ( is_string( $value ) && false !== stripos( $value, 'wpvivid' ) && false !== stripos( $value, 'backup' ) ) {
-			return $value;
+	private function normalize_backup_path( $path ) {
+		$path = trim( $path );
+
+		if ( $this->is_absolute_path( $path ) ) {
+			return $this->normalize_path( $path );
 		}
 
-		if ( ! is_array( $value ) ) {
-			return '';
-		}
+		return $this->normalize_path( WP_CONTENT_DIR . '/' . ltrim( $path, '/\\' ) );
+	}
 
-		foreach ( $value as $key => $child ) {
-			if ( is_string( $key ) && preg_match( '/(path|dir|folder)/i', $key ) ) {
-				$path = $this->find_path_in_value( $child );
-				if ( '' !== $path ) {
-					return $path;
-				}
-			}
-		}
+	/**
+	 * Normalizes path separators and trailing slashes.
+	 *
+	 * @param string $path Path.
+	 * @return string
+	 */
+	private function normalize_path( $path ) {
+		return untrailingslashit( wp_normalize_path( $path ) );
+	}
 
-		return '';
+	/**
+	 * Determines whether a path is already absolute.
+	 *
+	 * @param string $path Path.
+	 * @return bool
+	 */
+	private function is_absolute_path( $path ) {
+		return (bool) preg_match( '#^(?:[A-Za-z]:[\\\\/]|/|\\\\\\\\)#', $path );
 	}
 }

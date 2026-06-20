@@ -3,6 +3,7 @@
  * Settings storage and validation.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Handles plugin settings.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Settings {
 	const OPTION_NAME = 'alynt_drime_wpvivid_settings';
@@ -19,6 +22,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 * Returns default settings.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public static function defaults() {
 		return array(
@@ -43,6 +48,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 * Ensures the settings option exists with autoload disabled.
 	 *
 	 * @return void
+	 *
+	 * @since 0.1.0
 	 */
 	public static function maybe_install() {
 		if ( false === get_option( self::OPTION_NAME, false ) ) {
@@ -54,6 +61,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 * Returns merged settings.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public function get() {
 		$settings = get_option( self::OPTION_NAME, array() );
@@ -70,6 +79,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 *
 	 * @param array<string,mixed> $raw Raw settings.
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public function update( array $raw ) {
 		$sanitized = $this->sanitize( $raw, $this->get() );
@@ -79,11 +90,25 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	}
 
 	/**
+	 * Returns whether a settings array matches the persisted option.
+	 *
+	 * @param array<string,mixed> $settings Settings.
+	 * @return bool
+	 *
+	 * @since 0.1.0
+	 */
+	public function is_persisted( array $settings ) {
+		return $settings === $this->get();
+	}
+
+	/**
 	 * Sanitizes settings.
 	 *
 	 * @param array<string,mixed> $raw Raw settings.
 	 * @param array<string,mixed> $current Current settings.
 	 * @return array<string,mixed>
+	 *
+	 * @since 0.1.0
 	 */
 	public function sanitize( array $raw, array $current ) {
 		$settings = self::defaults();
@@ -98,7 +123,7 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$settings['workspace_id'] = isset( $raw['workspace_id'] ) ? max( 0, absint( $raw['workspace_id'] ) ) : 0;
 
 		if ( isset( $raw['parent_folder_id'] ) ) {
-			$parent_folder_id = trim( (string) wp_unslash( $raw['parent_folder_id'] ) );
+			$parent_folder_id             = trim( (string) wp_unslash( $raw['parent_folder_id'] ) );
 			$settings['parent_folder_id'] = '' === $parent_folder_id ? '' : (string) absint( $parent_folder_id );
 		}
 
@@ -108,7 +133,7 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			$settings['backup_path_override'] = sanitize_text_field( wp_unslash( $raw['backup_path_override'] ) );
 		}
 
-		$duplicate_mode = isset( $raw['duplicate_mode'] ) ? sanitize_key( wp_unslash( $raw['duplicate_mode'] ) ) : 'skip';
+		$duplicate_mode             = isset( $raw['duplicate_mode'] ) ? sanitize_key( wp_unslash( $raw['duplicate_mode'] ) ) : 'skip';
 		$settings['duplicate_mode'] = in_array( $duplicate_mode, array( 'skip', 'rename' ), true ) ? $duplicate_mode : 'skip';
 
 		$settings['auto_scan_enabled']         = ! empty( $raw['auto_scan_enabled'] );
@@ -128,6 +153,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 * Returns whether a token is configured.
 	 *
 	 * @return bool
+	 *
+	 * @since 0.1.0
 	 */
 	public function has_token() {
 		$settings = $this->get();
@@ -139,6 +166,8 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 * Returns severity levels in ascending order.
 	 *
 	 * @return array<string,int>
+	 *
+	 * @since 0.1.0
 	 */
 	public static function severity_levels() {
 		return array(

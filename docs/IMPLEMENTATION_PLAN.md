@@ -1,16 +1,34 @@
 # Alynt Drime WPvivid Uploader Implementation Plan
 
-Updated: 2026-06-19
+Updated: 2026-06-20
 
 ## Current State
 
 - Development repo exists at `C:\Development\WordPress\Plugins\alynt-drime-wpvivid-uploader`.
 - Plugin scaffold is in place with settings, scanner, queue, registry, Drime client, uploader, cron, admin page, uninstall cleanup, README, changelog, and settings docs.
 - Diagnostics and observability workflow is complete.
-- PHP syntax checks pass across all PHP files.
-- The plugin has not been installed on `plugin-tester.local`.
-- Composer/npm dependencies have not been installed, and PHPCS has not been run.
-- No initial Git commit has been made.
+- Build tooling workflow is complete. Composer/npm dependencies are installed, PHPCS/WPCS is configured, and npm build/lint/test scripts pass.
+- Pre-release Code Cleanup workflow is complete. Two unused runtime methods were removed: `Alynt_Drime_WPvivid_Uploader_Drime_Client::create_folder()` and `Alynt_Drime_WPvivid_Uploader_Plugin::cron()`.
+- Pre-release File Structure Review workflow is complete. Oversized runtime classes were split into focused traits for admin rendering, Drime direct/multipart APIs, uploader multipart/active/retry helpers, scanner metadata, and plugin admin actions; current runtime method inventory has no methods over 50 lines.
+- Pre-release Error Handling Review workflow is complete. Settings saves now verify persisted state, scan failures surface as explicit admin notices, diagnostics export has a JSON fallback, direct uploads use bounded cURL timeouts, and admin-post buttons show loading labels.
+- Pre-release WP Best Practices Review workflow is complete. The plugin loader now checks minimum WordPress/PHP requirements before loading runtime files that use modern PHP syntax.
+- Pre-release Database Review workflow is complete. The plugin has no custom tables or raw SQL; option-backed queue and registry writes now verify persisted state and return explicit failures when WordPress option storage does not update.
+- Pre-release Performance Review workflow is complete. Scan queuing now batches uploaded-registry reads and queue writes, and cron clearing skips unscheduled hooks to avoid unnecessary idle-request work.
+- Pre-release Edge Cases Review workflow is complete. Upload workers now use a short option-backed lock, clear-active reports abort/state failures honestly, and the delete-local-after-upload setting now performs post-upload local cleanup.
+- Pre-release Uninstall Review workflow is complete. Uninstall cleanup now includes the upload worker lock option and removes plugin-owned per-site options and cron hooks across multisite installs.
+- Pre-release I18N Review workflow is complete. Text-domain loading now runs early on `plugins_loaded`, all visible diagnostics severity labels and the relative-path placeholder are translatable, and a POT template was generated with WP-CLI.
+- Pre-release Accessibility Review workflow is complete. Admin notices now expose live roles, diagnostic data tables have screen-reader captions and scoped headers, and the recent-events empty-state heading follows the page hierarchy.
+- Pre-release Code Quality Review workflow is complete. Queue and registry array-option persistence now use a shared storage trait, runtime method inventory has no methods over 50 lines, and the final lint/test/build gate passes.
+- Pre-release Documentation Review workflow is complete. Runtime PHPDoc now includes `@since 0.1.0` coverage for class/trait/public-method declarations, README/readme/changelog/settings docs are current, and `docs/HOOKS.md` documents that version `0.1.0` exposes no public custom hooks.
+- Pre-release Security Audit workflow is complete. No critical, high, medium, or low blocking issues were found; admin actions are capability/nonce-gated, outputs are escaped, diagnostics are redacted, direct database SQL is absent, dangerous-function scans found only the intentional Drime cURL upload path, and Composer/npm audits are clean.
+- Release validation/package refresh is complete for the current source. Final lint, tests, build, npm audit, Composer audit, PHP syntax sweep, distribution zip audit, LocalWP packaged install, and admin render probe passed.
+- Drime API schema documentation pass is complete against current public docs, and live-token checks have verified connection, duplicate-validation response shape, available-name response key, direct small-file upload, and the parent-ID duplicate-validation workaround for relative-path uploads.
+- WPvivid source verification is complete against installed Free/Pro source and sanitized runtime options; a real single-file database backup fixture has been tested, and a WPvivid-list-backed split-part fixture has validated `.part001.zip` / `.part002.zip` scanner gating. A full backup-engine-generated split backup remains untested.
+- Feature security review is complete for the current changed code; multipart signed URLs are validated before upload and diagnostics redacts sensitive substrings in scalar values.
+- LocalWP integration has started on `plugin-tester.local`: the plugin is installed/active, the admin page loads, settings save, diagnostics export works, a real WPvivid database backup queues after stable-file scans, that backup uploaded successfully to Drime, duplicate-skip behavior works with the cached Drime parent folder ID, fresh plus interrupted-resume multipart uploads succeeded against Drime, remote multipart abort succeeds through the clear-active path, invalid-token retry handling is verified after auth-preflight hardening, malformed multipart plus HTTP `429` response paths have regression coverage, and a refreshed 33-file packaged release zip has installed/activated successfully through WordPress's upgrader API after the pre-release closeout.
+- PHP syntax checks pass across plugin PHP files excluding vendor and node_modules.
+- The plugin is installed on `plugin-tester.local` from the packaged release zip `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip`.
+- The initial scaffold baseline exists at Git commit `7f4b5df`.
 
 ## Target Test Site
 
@@ -53,6 +71,8 @@ Goals:
 
 Inspect the installed WPvivid Free and Pro source on `plugin-tester.local`.
 
+Status: complete for source/runtime option verification. See `docs/WPVIVID_RESEARCH.md`.
+
 Verify:
 
 - default and custom local backup path option names
@@ -64,59 +84,71 @@ Verify:
 
 Expected output:
 
-- update `class-wpvivid-detector.php` if reliable option names are found
-- update scanner grouping logic if split backup sets need set-level handling
-- document verified assumptions in `docs/WPVIVID_RESEARCH.md`
+- `class-wpvivid-detector.php` reads the verified WPvivid local path options, including Pro `outside_folder` mode.
+- Scanner candidates include WPvivid backup-set metadata when `wpvivid_backup_list` is available.
+- Verified assumptions are documented in `docs/WPVIVID_RESEARCH.md`.
 
 ### 4. Drime API Schema Verification
 
 Confirm exact request/response schemas against current Drime docs and, when a token is available, safe live test calls.
 
+Status: documentation pass complete against current public Drime docs. Live-token checks have verified connection, duplicate-validation response shape, available-name response key, relative-path direct upload, direct upload response shape, and cached parent-ID duplicate validation. See `docs/DRIME_API_RESEARCH.md`.
+
 Verify:
 
 - token test endpoint
 - folder creation behavior
-- duplicate validation response shape
-- available-name response shape
-- small upload endpoint behavior
+- duplicate validation response shape (verified; relative-path duplicate detection remains unreliable)
+- available-name response shape (verified live key is `available`, not documented `name`)
+- small upload endpoint behavior (verified with a real WPvivid database backup)
 - multipart create response keys
 - signed part URL response shape
 - ETag formatting requirements
 - complete multipart response shape
+- abort multipart response shape
 - `/s3/entries` registration body and response shape
-- whether `relativePath`, `parentId`, and `workspaceId=0` behave as expected
+- whether `relativePath`, `parentId`, and `workspaceId=0` behave as expected (partially verified; remote duplicate detection requires top-level `parentId`)
 
 Expected output:
 
 - update `class-drime-client.php` field names and parsers
 - add defensive handling for malformed responses
 - document verified schemas in `docs/DRIME_API_RESEARCH.md`
+- store resolved Drime parent folder IDs after relative-path uploads so future duplicate validation can send top-level `parentId`
 
 ### 5. Scanner And Queue Hardening
 
 Improve MVP scanner behavior after WPvivid verification.
 
+Status: mostly complete. Scanner candidates now include WPvivid backup-set metadata, WPvivid-listed sets are queued only after every listed file is present and stable, valid `.partNNN.zip` split archives are preserved while raw temporary `.part` files are ignored, orphaned split archive parts are skipped, duplicate queue handling checks path and WPvivid backup-id/name identity, retry cap enforcement is implemented, and stale active-upload state is cleared after six hours.
+
 Needed:
 
-- group split backups into complete backup sets
-- prevent queueing partial/incomplete backup sets
-- store set-level metadata where needed
-- improve duplicate queue handling
-- add retry cap enforcement
-- add stale active-upload recovery behavior
+- group split backups into complete backup sets (done for WPvivid backup-list-backed sets; runtime WPvivid-list-backed split fixture validated; full generated split backup still untested)
+- prevent queueing partial/incomplete backup sets (done for WPvivid backup-list-backed sets and orphaned split parts)
+- store set-level metadata where needed (done for scanner candidates)
+- improve duplicate queue handling (done for local path and WPvivid backup-id/name identity)
+- add retry cap enforcement (done)
+- add stale active-upload recovery behavior (done)
 
 ### 6. Upload Flow Hardening
 
 Improve uploader reliability before real backup testing.
 
+Status: mostly complete. Direct small-file upload is verified live with a real WPvivid database backup. Fresh multipart upload and interrupted multipart resume are verified live with temporary `.zip` fixtures over the multipart threshold. Multipart active state is persisted without presigned URLs, same-item active state can resume, uploaded parts are fetched with `get-uploaded-parts`, completed part numbers are skipped, signed upload URLs are validated as safe HTTPS URLs before sending backup bytes, malformed signed URL payloads fail before bytes are uploaded, every upload is gated by a JSON token preflight, invalid-token and HTTP `429` preflight handling stop before byte upload, the admin can clear local active upload state and abort the remote multipart upload when possible, cached relative-path parent IDs are used for reliable remote duplicate validation, and tests cover fresh/resumed/abort/auth-preflight/malformed-response/rate-limit multipart control flow.
+
 Needed:
 
-- verify small-file upload path or replace it with the documented Drime upload flow if needed
-- support multipart resume using saved state and `get-uploaded-parts`
-- persist multipart state after each uploaded part
-- add abort/clear stale upload state
+- verify small-file upload path or replace it with the documented Drime upload flow if needed (done with live direct upload)
+- support multipart resume using saved state and `get-uploaded-parts` (implemented and live-validated with an interrupted upload)
+- persist multipart state after each uploaded part (done)
+- add abort/clear stale upload state (done; manual clear abort live-validated, stale clear covered by PHPUnit)
 - ensure local deletion remains disabled by default and requires explicit admin opt-in
-- avoid logging file contents, tokens, presigned URLs, or raw request bodies
+- avoid logging file contents, tokens, presigned URLs, or raw request bodies (diagnostics key-based and scalar substring redaction implemented)
+- use top-level `parentId` for Drime duplicate validation after a relative-path upload has resolved the concrete parent folder (done)
+- block uploads when the JSON token preflight fails, even if an upload endpoint would otherwise accept the request (done)
+- reject malformed multipart create/sign responses before upload completion or Drime entry registration (done with regression coverage)
+- handle HTTP `429` rate-limit responses without uploading backup bytes (done with regression coverage; live rate-limit induction intentionally not forced)
 
 ### 7. Admin UX Pass
 
@@ -125,6 +157,8 @@ Run the UI workflow after the core feature paths are stable:
 ```text
 @FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md run
 ```
+
+Status: complete for the current admin screen. The pass connected help text with `aria-describedby`, added missing action feedback notices, improved error copy, applied destructive button styling for clear actions, added diagnostics settings controls, and ensured disabled action buttons also set `aria-disabled`.
 
 Focus:
 
@@ -135,7 +169,47 @@ Focus:
 - confirmation for destructive actions
 - accessibility of buttons, form controls, notices, and status messages
 
-### 8. LocalWP Install And Integration Test
+### 8. Feature Security Review
+
+Status: complete for the current changed feature code.
+
+Findings/fixes:
+
+- Admin form/action handlers are guarded by `manage_options` and `check_admin_referer()`.
+- Diagnostics export and admin UI output are capability-gated and escaped/redacted.
+- Drime multipart part uploads now use `wp_safe_remote_request()` and reject unsafe or non-HTTPS signed URLs before transmitting backup bytes.
+- Diagnostics now redacts bearer tokens and HTTP(S) URLs when they appear inside scalar values such as transport error messages, not only when sensitive context keys are used.
+
+Verification:
+
+- `npm.cmd run lint` passed.
+- `npm.cmd test` passed: 24 tests, 64 assertions.
+- `npm.cmd run build` passed.
+- Changed PHP files passed `php -l`.
+- `git diff --check` passed with existing CRLF warnings only.
+
+### 9. LocalWP Install And Integration Test
+
+Status: partially complete on `plugin-tester.local`.
+
+Verified:
+
+- Plugin runtime files were copied into `C:\Users\Captain\Local Sites\plugin-tester\app\public\wp-content\plugins\alynt-drime-wpvivid-uploader` and activated.
+- Default settings option was installed; auto-scan cron remains unscheduled while automatic scanning is disabled.
+- Admin page loads in wp-admin with no console errors.
+- Settings save works through `admin-post.php`.
+- Diagnostics controls render, diagnostics settings persist through a normal save, and diagnostics export returns JSON without bearer tokens or `api_token`.
+- WPvivid generated a real local database backup: `plugin-tester.local_wpvivid-0d2ea337c5c5b_2026-06-19-21-45_backup_db.zip`.
+- Scanner first captured the new backup snapshot without queueing, then queued it on the second scan after size/age stability was established.
+- Queued item includes `wpvivid_backup_list` metadata with `from_list: true`, backup id `wpvivid-0d2ea337c5c5b`, and one listed file.
+- Upload without a Drime token fails safely, leaves active upload state empty, increments attempts to 1, records one failed item, and logs redacted diagnostics.
+- Earlier live Drime upload test state verified the queue empty, uploaded registry count `1`, failed registry count `0`, active upload state empty, diagnostics enabled at debug level, minimum file age set to 60 seconds, and the resolved Drime parent folder ID cached for the configured relative path. Latest packaged install validation is recorded separately below.
+- Packaged zip validation passed after the pre-release closeout: `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip` contains 33 production files, has the expected top-level plugin folder and main plugin file, uses forward-slash zip entries, excludes dev/tooling/handoff/generated files including `assets/dist`, installed over the LocalWP runtime copy through WordPress's `Plugin_Upgrader` with `overwrite_package=true`, activated successfully, rendered the admin page in a WordPress runtime probe, preserved plugin options, and left queue count `0`, failed count `0`, uploaded registry count `0`, and active upload empty.
+
+Pending:
+
+- Duplicate handling against existing Drime files is partially verified. Local registry prevention is verified, and Drime remote duplicate-skip behavior was validated using a copied backup with the same basename and the cached top-level `parentId`; relative-path-only request variants remain unreliable.
+- Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains untested to avoid abusive API traffic.
 
 Use `plugin-tester local-only` after the confirmation gate.
 
@@ -151,10 +225,12 @@ Test sequence:
 - queue backup or backup set
 - upload tiny test file when safe
 - upload real WPvivid backup archive
+- upload a multipart-threshold test archive
+- resume an interrupted multipart-threshold test archive
 - confirm file appears visibly in Drime
 - confirm duplicate handling prevents re-upload
 
-### 9. Failure Testing
+### 10. Failure Testing
 
 Test:
 
@@ -164,32 +240,37 @@ Test:
 - missing local file after queueing
 - interrupted multipart upload
 - Drime API error
-- malformed Drime response
+- malformed Drime response (multipart create/sign response and HTTP `429` unit coverage added; broader live malformed/rate-limit cases pending if safe)
 - duplicate remote filename
 - disabled diagnostics
 - diagnostics export and clear actions
 
-### 10. Pre-Release Review Sequence
+### 11. Pre-Release Review Sequence
 
 After MVP functionality works locally, run the pre-release sequence:
 
 ```text
 @01-CODE_CLEANUP_PROMPT.md run
 @02-FILE_STRUCTURE_REVIEW_PROMPT.md run
-@03-DOCUMENTATION_REVIEW_PROMPT.md run
-@04-I18N_REVIEW_PROMPT.md run
-@05-ACCESSIBILITY_REVIEW_PROMPT.md run
-@06-ERROR_HANDLING_REVIEW_PROMPT.md run
-@07-WP_BEST_PRACTICES_REVIEW_PROMPT.md run
-@08-PERFORMANCE_REVIEW_PROMPT.md run
-@09-DATABASE_REVIEW_PROMPT.md run
-@10-UNINSTALL_REVIEW_PROMPT.md run
-@11-EDGE_CASES_REVIEW_PROMPT.md run
-@12-CODE_QUALITY_REVIEW_PROMPT.md run
+@03-ERROR_HANDLING_REVIEW_PROMPT.md run
+@04-WP_BEST_PRACTICES_REVIEW_PROMPT.md run
+@05-DATABASE_REVIEW_PROMPT.md run
+@06-PERFORMANCE_REVIEW_PROMPT.md run
+@07-EDGE_CASES_REVIEW_PROMPT.md run
+@08-UNINSTALL_REVIEW_PROMPT.md run
+@09-I18N_REVIEW_PROMPT.md run
+@10-ACCESSIBILITY_REVIEW_PROMPT.md run
+@11-CODE_QUALITY_REVIEW_PROMPT.md run
+@12-DOCUMENTATION_REVIEW_PROMPT.md run
 @13-SECURITY_AUDIT_PROMPT.md run
 ```
 
 Record each completed workflow in `PRE_RELEASE_CHECKLIST.md` only after successful completion.
+
+Status:
+
+- `@01-CODE_CLEANUP_PROMPT.md run` through `@13-SECURITY_AUDIT_PROMPT.md run` completed on 2026-06-20 and are recorded in `PRE_RELEASE_CHECKLIST.md`.
+- Final release validation lint/test/build rows completed on 2026-06-20 and are recorded in `PRE_RELEASE_CHECKLIST.md`.
 
 ## Acceptance Criteria For MVP
 

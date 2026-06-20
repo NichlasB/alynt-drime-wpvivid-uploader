@@ -3,8 +3,13 @@
   "description": "Upload completed WPvivid local backup files to Drime.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
-  "require": {},
-  "requireDev": {
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3.7",
+    "phpunit/phpunit": "^9.6",
+    "brain/monkey": "^2.6",
     "wp-coding-standards/wpcs": "^3.1",
     "phpcompatibility/phpcompatibility-wp": "^2.1",
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0"

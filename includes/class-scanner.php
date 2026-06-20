@@ -3,6 +3,7 @@
  * Backup directory scanner.
  *
  * @package Alynt_Drime_WPvivid_Uploader
+ * @since   0.1.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,8 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Scans local WPvivid backups and returns stable files.
+ *
+ * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Scanner {
+	use Alynt_Drime_WPvivid_Uploader_Scanner_Metadata;
+
 	const SNAPSHOT_OPTION = 'alynt_drime_wpvivid_file_snapshots';
 
 	/**
@@ -41,6 +46,9 @@ class Alynt_Drime_WPvivid_Uploader_Scanner {
 	 *
 	 * @param Alynt_Drime_WPvivid_Uploader_Settings         $settings Settings.
 	 * @param Alynt_Drime_WPvivid_Uploader_WPvivid_Detector $detector Detector.
+	 * @param Alynt_Drime_WPvivid_Uploader_Logger|null      $logger Logger.
+	 *
+	 * @since 0.1.0
 	 */
 	public function __construct( Alynt_Drime_WPvivid_Uploader_Settings $settings, Alynt_Drime_WPvivid_Uploader_WPvivid_Detector $detector, ?Alynt_Drime_WPvivid_Uploader_Logger $logger = null ) {
 		$this->settings = $settings;
@@ -52,69 +60,127 @@ class Alynt_Drime_WPvivid_Uploader_Scanner {
 	 * Scans for stable ZIP backups.
 	 *
 	 * @return array{directory:string,candidates:array<int,array<string,mixed>>,errors:array<int,string>}
+	 *
+	 * @since 0.1.0
 	 */
 	public function scan() {
 		$settings  = $this->settings->get();
 		$directory = $this->detector->get_backup_dir( $settings );
-		$result    = array(
-			'directory'  => $directory,
-			'candidates' => array(),
-			'errors'     => array(),
-		);
+		$result    = $this->empty_scan_result( $directory );
 
 		if ( ! is_dir( $directory ) || ! is_readable( $directory ) ) {
-			$result['errors'][] = __( 'The WPvivid backup directory is not readable.', 'alynt-drime-wpvivid-uploader' );
-			$this->diagnostic( 'error', 'backup_directory_unreadable', 'The WPvivid backup directory is not readable.', array( 'directory' => $directory ) );
-			return $result;
+			return $this->unreadable_directory_result( $directory, $result );
 		}
 
-		$snapshots     = $this->get_snapshots();
-		$new_snapshots = array();
-		$minimum_age   = max( 60, absint( $settings['min_file_age_seconds'] ) );
-		$now           = time();
-		$files         = glob( trailingslashit( $directory ) . '*.zip' );
-
+		$files = glob( trailingslashit( $directory ) . '*.zip' );
 		if ( ! is_array( $files ) ) {
 			$this->diagnostic( 'warning', 'backup_glob_failed', 'The backup directory scan did not return a file list.', array( 'directory' => $directory ) );
 			return $result;
 		}
 
+		$file_infos           = $this->scan_file_infos( $files, $settings );
+		$result['candidates'] = $this->filter_complete_candidates( $file_infos );
+
+		return $result;
+	}
+
+	/**
+	 * Returns an empty scan result.
+	 *
+	 * @param string $directory Directory.
+	 * @return array{directory:string,candidates:array<int,array<string,mixed>>,errors:array<int,string>}
+	 *
+	 * @since 0.1.0
+	 */
+	private function empty_scan_result( $directory ) {
+		return array(
+			'directory'  => $directory,
+			'candidates' => array(),
+			'errors'     => array(),
+		);
+	}
+
+	/**
+	 * Builds a scan result for an unreadable directory.
+	 *
+	 * @param string              $directory Directory.
+	 * @param array<string,mixed> $result Result.
+	 * @return array<string,mixed>
+	 */
+	private function unreadable_directory_result( $directory, array $result ) {
+		$result['errors'][] = __( 'The WPvivid backup directory is not readable.', 'alynt-drime-wpvivid-uploader' );
+		$this->diagnostic( 'error', 'backup_directory_unreadable', 'The WPvivid backup directory is not readable.', array( 'directory' => $directory ) );
+
+		return $result;
+	}
+
+	/**
+	 * Builds scanned file info.
+	 *
+	 * @param array<int,string>   $files Files.
+	 * @param array<string,mixed> $settings Settings.
+	 * @return array<string,array<string,mixed>>
+	 */
+	private function scan_file_infos( array $files, array $settings ) {
+		$snapshots       = $this->get_snapshots();
+		$new_snapshots   = array();
+		$minimum_age     = max( 60, absint( $settings['min_file_age_seconds'] ) );
+		$now             = time();
+		$backup_metadata = $this->get_backup_list_metadata();
+		$file_infos      = array();
+
 		foreach ( $files as $file ) {
-			if ( ! is_file( $file ) || ! is_readable( $file ) || $this->looks_temporary( $file ) ) {
+			$info = $this->scan_file_info( $file, $snapshots, $minimum_age, $now, $backup_metadata );
+			if ( empty( $info ) ) {
 				continue;
 			}
 
-			$size  = filesize( $file );
-			$mtime = filemtime( $file );
-			if ( false === $size || false === $mtime || $size <= 0 ) {
-				continue;
-			}
-
-			$key                   = $this->signature( $file );
-			$new_snapshots[ $key ] = array(
-				'size'  => $size,
-				'mtime' => $mtime,
+			$new_snapshots[ $info['signature'] ] = array(
+				'size'  => $info['size'],
+				'mtime' => $info['mtime'],
 			);
-
-			$previous = isset( $snapshots[ $key ] ) && is_array( $snapshots[ $key ] ) ? $snapshots[ $key ] : array();
-			$is_stable = isset( $previous['size'] ) && (int) $previous['size'] === (int) $size && ( $now - (int) $mtime ) >= $minimum_age;
-
-			if ( ! $is_stable ) {
-				continue;
-			}
-
-			$result['candidates'][] = array(
-				'signature' => $key,
-				'path'      => $file,
-				'name'      => basename( $file ),
-				'size'      => $size,
-				'mtime'     => $mtime,
-			);
+			$file_infos[ $info['name'] ]         = $info;
 		}
 
 		update_option( self::SNAPSHOT_OPTION, $new_snapshots, false );
 
-		return $result;
+		return $file_infos;
+	}
+
+	/**
+	 * Builds one scanned file info entry.
+	 *
+	 * @param string                            $file File.
+	 * @param array<string,array<string,int>>   $snapshots Snapshots.
+	 * @param int                               $minimum_age Minimum age.
+	 * @param int                               $now Current timestamp.
+	 * @param array<string,array<string,mixed>> $backup_metadata Backup metadata.
+	 * @return array<string,mixed>
+	 */
+	private function scan_file_info( $file, array $snapshots, $minimum_age, $now, array $backup_metadata ) {
+		if ( ! is_file( $file ) || ! is_readable( $file ) || $this->looks_temporary( $file ) ) {
+			return array();
+		}
+
+		$name  = basename( $file );
+		$size  = filesize( $file );
+		$mtime = filemtime( $file );
+		if ( false === $size || false === $mtime || $size <= 0 ) {
+			return array();
+		}
+
+		$key      = $this->signature( $file );
+		$previous = isset( $snapshots[ $key ] ) && is_array( $snapshots[ $key ] ) ? $snapshots[ $key ] : array();
+
+		return array(
+			'signature' => $key,
+			'path'      => $file,
+			'name'      => $name,
+			'size'      => $size,
+			'mtime'     => $mtime,
+			'stable'    => isset( $previous['size'] ) && (int) $previous['size'] === (int) $size && ( $now - (int) $mtime ) >= $minimum_age,
+			'wpvivid'   => $this->metadata_for_file( $name, $backup_metadata ),
+		);
 	}
 
 	/**
@@ -137,6 +203,8 @@ class Alynt_Drime_WPvivid_Uploader_Scanner {
 	 *
 	 * @param string $file File path.
 	 * @return string
+	 *
+	 * @since 0.1.0
 	 */
 	public function signature( $file ) {
 		return hash( 'sha256', wp_normalize_path( $file ) );
@@ -162,6 +230,72 @@ class Alynt_Drime_WPvivid_Uploader_Scanner {
 	private function looks_temporary( $file ) {
 		$name = strtolower( basename( $file ) );
 
+		if ( $this->is_split_part( $name ) ) {
+			return false;
+		}
+
 		return (bool) preg_match( '/(\.tmp|\.part|temp|partial|incomplete)/', $name );
+	}
+
+	/**
+	 * Filters scanned files down to complete, stable upload candidates.
+	 *
+	 * @param array<string,array<string,mixed>> $file_infos File info keyed by basename.
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function filter_complete_candidates( array $file_infos ) {
+		$candidates   = array();
+		$blocked_sets = array();
+
+		foreach ( $file_infos as $name => $info ) {
+			if ( empty( $info['stable'] ) ) {
+				continue;
+			}
+
+			$metadata = isset( $info['wpvivid'] ) && is_array( $info['wpvivid'] ) ? $info['wpvivid'] : array();
+
+			if ( ! empty( $metadata['from_list'] ) ) {
+				if ( ! $this->is_listed_set_complete( $metadata, $file_infos ) ) {
+					$set_signature = isset( $metadata['set_signature'] ) ? (string) $metadata['set_signature'] : (string) $name;
+					if ( ! isset( $blocked_sets[ $set_signature ] ) ) {
+						$this->diagnostic( 'warning', 'wpvivid_backup_set_incomplete', 'A WPvivid backup set was not queued because not all listed files are present and stable.', array( 'backup_id' => isset( $metadata['backup_id'] ) ? (string) $metadata['backup_id'] : '' ) );
+						$blocked_sets[ $set_signature ] = true;
+					}
+					continue;
+				}
+			} elseif ( $this->is_split_part( $name ) ) {
+				$this->diagnostic( 'warning', 'wpvivid_split_file_without_list', 'A split WPvivid backup part was not queued because no completed backup-list entry was found.', array( 'file' => $name ) );
+				continue;
+			}
+
+			unset( $info['stable'] );
+			$candidates[] = $info;
+		}
+
+		return $candidates;
+	}
+
+	/**
+	 * Determines whether all files in a WPvivid-listed backup set are stable.
+	 *
+	 * @param array<string,mixed>               $metadata Backup metadata.
+	 * @param array<string,array<string,mixed>> $file_infos File info keyed by basename.
+	 * @return bool
+	 */
+	private function is_listed_set_complete( array $metadata, array $file_infos ) {
+		$set_files = isset( $metadata['set_files'] ) && is_array( $metadata['set_files'] ) ? $metadata['set_files'] : array();
+
+		if ( empty( $set_files ) ) {
+			return true;
+		}
+
+		foreach ( $set_files as $set_file ) {
+			$name = basename( (string) $set_file );
+			if ( empty( $file_infos[ $name ]['stable'] ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

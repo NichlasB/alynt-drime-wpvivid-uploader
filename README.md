@@ -2,23 +2,75 @@
 
 Companion WordPress plugin that scans completed local WPvivid backup archives and uploads them to Drime.
 
-## MVP Scope
+## Features
 
-- Stores Drime connection settings in WordPress options.
-- Detects local WPvivid backup archives by scanning a configured or detected backup directory.
-- Queues stable backup files for upload.
-- Uploads large files through Drime multipart upload, then registers them with Drime S3 entries.
-- Tracks uploaded, queued, failed, and active upload state in WordPress options.
-- Provides a WordPress-native admin page under Tools.
+- Detects the local WPvivid backup folder, including verified Free/Pro path options.
+- Scans only stable backup files so in-progress archives are not queued.
+- Handles WPvivid-listed split archives such as `.part001.zip` and `.part002.zip` as complete sets.
+- Queues uploads, tracks attempts, enforces retry limits, and prevents duplicate queue entries.
+- Uploads small files through Drime direct upload and larger files through resumable multipart upload.
+- Caches resolved Drime parent folder IDs so remote duplicate checks work after relative-path uploads.
+- Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
+- Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
+- Stores bounded, redacted diagnostics when diagnostics are explicitly enabled.
+- Keeps local backups after upload by default; deletion requires explicit opt-in.
 
-## Current Notes
+## Requirements
 
-This is a development-repo scaffold. Install on the LocalWP site `plugin-tester.local` only after the implementation has passed local static checks and the site-operation confirmation gate.
+- WordPress 6.0 or later.
+- PHP 7.4 or later.
+- WPvivid Backup Plugin with local backup files available on the same site.
+- A Drime API token.
 
-The Drime API token is stored in an option with autoload disabled and is masked in the UI. Do not commit tokens, logs with tokens, or presigned URLs.
+## Installation
+
+1. Upload the plugin folder to `wp-content/plugins/alynt-drime-wpvivid-uploader`.
+2. Activate **Alynt Drime WPvivid Uploader** from the WordPress Plugins screen.
+3. Open **Tools > Drime WPvivid**.
+4. Enter a Drime API token and destination settings.
+5. Use **Test Drime Connection** before scanning or uploading.
+
+For development and release validation, use the packaged zip and the documented LocalWP confirmation gate before touching `plugin-tester.local`.
+
+## Configuration
+
+The settings screen controls:
+
+- Drime API token, workspace ID, parent folder ID, and optional relative path.
+- Optional WPvivid backup path override.
+- Duplicate handling mode: skip existing files or rename new uploads.
+- Automatic WP-Cron scanning.
+- Minimum file age before queueing.
+- Optional local deletion after confirmed upload.
+- Maximum retry count.
+- Diagnostics enablement, minimum severity, and retention.
+
+See [docs/SETTINGS.md](docs/SETTINGS.md) for the full option schema.
 
 ## Diagnostics
 
-Diagnostics are disabled by default. When enabled, the plugin stores a bounded, redacted event log in WordPress options. The diagnostics panel is available only to administrators who can manage options and includes a health summary, recent events, JSON export, and clear action.
+Diagnostics are disabled by default. When enabled, the plugin stores a bounded event log in WordPress options and exposes a health summary, recent events table, JSON export, and clear action to administrators.
 
-The logger redacts tokens, authorization headers, cookies, nonces, passwords, request bodies, and presigned URLs before storing or exporting events.
+Diagnostics redact bearer tokens, authorization headers, cookies, nonces, passwords, request bodies, presigned URLs, and HTTP URLs embedded in scalar values.
+
+## Frequently Asked Questions
+
+### Does this delete local WPvivid backups?
+
+No. Local deletion is disabled by default and only runs after a confirmed upload when the administrator enables **Delete Local Files**.
+
+### Does this upload incomplete WPvivid files?
+
+The scanner waits until files are old enough and their size is stable across scans. WPvivid-listed split sets are queued only when every listed part is present and stable.
+
+### Does this expose developer hooks?
+
+No public custom actions or filters are exposed in `0.1.0`. See [docs/HOOKS.md](docs/HOOKS.md).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+GPL-2.0-or-later. See [LICENSE](LICENSE).
