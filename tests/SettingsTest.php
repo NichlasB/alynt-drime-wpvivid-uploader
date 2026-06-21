@@ -137,6 +137,33 @@ class SettingsTest extends TestCase {
 		$this->assertFalse( $disabled['server_cron_expected'] );
 	}
 
+	public function test_folder_browser_metadata_is_sanitized_and_cleared_with_empty_parent() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		$saved = $settings->update(
+			array(
+				'parent_folder_id'           => '123',
+				'parent_folder_hash'         => 'hash-123/../bad',
+				'parent_folder_display_path' => 'General//Files//Backups',
+			)
+		);
+
+		$cleared = $settings->update(
+			array(
+				'parent_folder_id'           => '',
+				'parent_folder_hash'         => 'hash-123',
+				'parent_folder_display_path' => 'General/Files/Backups',
+			)
+		);
+
+		$this->assertSame( '123', $saved['parent_folder_id'] );
+		$this->assertSame( 'hash-123bad', $saved['parent_folder_hash'] );
+		$this->assertSame( 'General/Files/Backups', $saved['parent_folder_display_path'] );
+		$this->assertSame( '', $cleared['parent_folder_hash'] );
+		$this->assertSame( '', $cleared['parent_folder_display_path'] );
+	}
+
 	/**
 	 * Creates settings with mocked option storage.
 	 *

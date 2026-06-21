@@ -92,6 +92,13 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	private $client;
 
 	/**
+	 * Folder browser.
+	 *
+	 * @var Alynt_Drime_WPvivid_Uploader_Folder_Browser
+	 */
+	private $folder_browser;
+
+	/**
 
 	 * Uploader.
 	 *
@@ -156,6 +163,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 
 		$this->client = new Alynt_Drime_WPvivid_Uploader_Drime_Client( $this->settings, $this->logger );
 
+		$this->folder_browser = new Alynt_Drime_WPvivid_Uploader_Folder_Browser( $this->settings, $this->client, $this->logger );
+
 		$this->uploader = new Alynt_Drime_WPvivid_Uploader_Uploader( $this->settings, $this->client, $this->queue, $this->registry, $this->logger, $this->notifier );
 
 		$this->cron = new Alynt_Drime_WPvivid_Uploader_Cron( $this );
@@ -202,6 +211,10 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 		add_action( 'admin_post_alynt_drime_wpvivid_export_diagnostics', array( $this, 'handle_export_diagnostics' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_clear_diagnostics', array( $this, 'handle_clear_diagnostics' ) );
+
+		add_action( 'wp_ajax_alynt_drime_wpvivid_list_folders', array( $this, 'handle_ajax_list_folders' ) );
+
+		add_action( 'wp_ajax_alynt_drime_wpvivid_preview_destination', array( $this, 'handle_ajax_preview_destination' ) );
 
 		$this->cron->hooks();
 	}
@@ -335,6 +348,18 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	public function queue() {
 
 		return $this->queue;
+	}
+
+	/**
+	 * Folder browser getter.
+	 *
+	 * @return Alynt_Drime_WPvivid_Uploader_Folder_Browser
+	 *
+	 * @since 0.3.0
+	 */
+	public function folder_browser() {
+
+		return $this->folder_browser;
 	}
 
 	/**

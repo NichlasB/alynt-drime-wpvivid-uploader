@@ -64,14 +64,53 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 				<th scope="row"><label for="alynt-parent-folder-id"><?php esc_html_e( 'Parent Folder ID', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 				<td>
 					<input id="alynt-parent-folder-id" name="alynt_drime_wpvivid_settings[parent_folder_id]" type="number" min="0" value="<?php echo esc_attr( (string) $settings['parent_folder_id'] ); ?>" aria-describedby="alynt-parent-folder-id-description">
-					<p id="alynt-parent-folder-id-description" class="description"><?php esc_html_e( 'Leave empty for the Drime root folder. You can also use a relative path below.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+					<input id="alynt-parent-folder-hash" name="alynt_drime_wpvivid_settings[parent_folder_hash]" type="hidden" value="<?php echo esc_attr( (string) $settings['parent_folder_hash'] ); ?>">
+					<input id="alynt-parent-folder-display-path" name="alynt_drime_wpvivid_settings[parent_folder_display_path]" type="hidden" value="<?php echo esc_attr( (string) $settings['parent_folder_display_path'] ); ?>">
+					<p id="alynt-parent-folder-id-description" class="description"><?php esc_html_e( 'Leave empty for the Drime root folder, or browse and select an existing Drime base folder.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+					<p class="description" data-alynt-selected-folder>
+						<?php
+						if ( '' !== (string) $settings['parent_folder_display_path'] ) {
+							printf(
+								/* translators: %s: selected Drime folder path. */
+								esc_html__( 'Selected base folder: %s', 'alynt-drime-wpvivid-uploader' ),
+								esc_html( (string) $settings['parent_folder_display_path'] )
+							);
+						} else {
+							esc_html_e( 'Selected base folder: Drime root or manually entered folder ID.', 'alynt-drime-wpvivid-uploader' );
+						}
+						?>
+					</p>
+					<div class="alynt-drime-folder-tools" data-alynt-folder-browser>
+						<button type="button" class="button" data-alynt-folder-browser-open><?php esc_html_e( 'Browse Drime Folders', 'alynt-drime-wpvivid-uploader' ); ?></button>
+						<button type="button" class="button" data-alynt-destination-preview><?php esc_html_e( 'Preview Destination', 'alynt-drime-wpvivid-uploader' ); ?></button>
+						<span class="spinner" data-alynt-folder-spinner></span>
+						<div class="alynt-drime-folder-status" aria-live="polite" data-alynt-folder-status></div>
+						<div class="alynt-drime-folder-panel" hidden data-alynt-folder-panel>
+							<div class="alynt-drime-folder-search">
+								<label class="screen-reader-text" for="alynt-folder-search"><?php esc_html_e( 'Search Drime folders', 'alynt-drime-wpvivid-uploader' ); ?></label>
+								<input id="alynt-folder-search" type="search" class="regular-text" data-alynt-folder-search>
+								<button type="button" class="button" data-alynt-folder-search-button><?php esc_html_e( 'Search', 'alynt-drime-wpvivid-uploader' ); ?></button>
+							</div>
+							<table class="widefat striped alynt-drime-folder-table">
+								<thead>
+									<tr>
+										<th scope="col"><?php esc_html_e( 'Name', 'alynt-drime-wpvivid-uploader' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Path', 'alynt-drime-wpvivid-uploader' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Actions', 'alynt-drime-wpvivid-uploader' ); ?></th>
+									</tr>
+								</thead>
+								<tbody data-alynt-folder-rows></tbody>
+							</table>
+						</div>
+						<div class="alynt-drime-destination-preview" aria-live="polite" data-alynt-destination-status></div>
+					</div>
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="alynt-relative-path"><?php esc_html_e( 'Relative Path', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 				<td>
 					<input id="alynt-relative-path" name="alynt_drime_wpvivid_settings[relative_path]" type="text" class="regular-text" value="<?php echo esc_attr( (string) $settings['relative_path'] ); ?>" placeholder="<?php echo esc_attr__( '/WPvivid Backups', 'alynt-drime-wpvivid-uploader' ); ?>" aria-describedby="alynt-relative-path-description">
-					<p id="alynt-relative-path-description" class="description"><?php esc_html_e( 'Optional Drime folder path. Drime can auto-create missing folders when this is provided.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+					<p id="alynt-relative-path-description" class="description"><?php esc_html_e( 'Optional subpath under the selected base folder. Missing folders are created only when an upload needs them.', 'alynt-drime-wpvivid-uploader' ); ?></p>
 				</td>
 			</tr>
 		</table>

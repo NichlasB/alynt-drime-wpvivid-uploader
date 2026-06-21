@@ -1,6 +1,6 @@
 # Drime API Research
 
-Updated: 2026-06-20
+Updated: 2026-06-21
 
 Sources:
 
@@ -15,6 +15,10 @@ Sources:
 - https://docs.drime.cloud/api-reference/multipart/sign-part-urls
 - https://docs.drime.cloud/api-reference/multipart/complete-multipart
 - https://docs.drime.cloud/api-reference/multipart/get-uploaded-parts
+- https://docs.drime.cloud/api-reference/users/get-logged-user
+- https://docs.drime.cloud/api-reference/folders/get-user-folders
+- https://docs.drime.cloud/api-reference/files/list-file-entries
+- https://docs.drime.cloud/api-reference/folders/get-folder-path
 
 ## Verified From Current Docs
 
@@ -48,10 +52,15 @@ Sources:
 - S3 entry registration endpoint is `POST /s3/entries`.
 - S3 entry body includes `filename`, `size`, `clientName`, `clientMime`, `clientExtension`, `workspaceId`, and optionally `parentId` or `relativePath`.
 - S3 entry response should include `status` and `fileEntry`.
+- Folder browsing can use `GET /cli/loggedUser`, `GET /users/{userId}/folders?workspaceId=0`, `GET /drive/file-entries?workspaceId=0&type=folder&folderId={folderHash}`, and `GET /folders/{folderHash}/path`.
+- The folder browser stores non-secret display metadata only: numeric folder ID, folder hash, and display path. It does not expose bearer tokens in JavaScript or AJAX responses.
 
 ## Code Updates Made
 
-- Direct small-file uploads now pass `relativePath` when configured, otherwise they pass `parentId`.
+- Direct small-file uploads now pass `relativePath` only for legacy relative-path settings without a selected base folder.
+- Selected-base uploads now resolve or create the final relative-path folder during upload and then target that concrete parent folder ID for direct and multipart uploads. Live E2E showed Drime direct upload does not reliably honor `relativePath` alongside `parentId`.
+- The Drime client now includes read-only folder browser methods for logged-user lookup, user-folder listing, child folder listing, and folder breadcrumb lookup.
+- Destination preview is read-only and reports existing or missing relative-path segments without creating folders or uploading backup bytes.
 - The Drime client now treats non-empty, non-JSON responses as malformed.
 - Duplicate validation now requires a `duplicates` array.
 - Available-name lookup now accepts Drime's live `available` response key and falls back to the documented `name` key.

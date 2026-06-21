@@ -124,6 +124,40 @@ class UploaderTest extends TestCase {
 		$this->assertArrayNotHasKey( 'relativePath', $client->validate_files[0] );
 	}
 
+	public function test_duplicate_validation_keeps_relative_path_for_selected_base_folder() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_id'] = '321';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path']    = '/site1.com';
+
+		$client   = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( 321, $client->validate_parent_id );
+		$this->assertSame( '/site1.com', $client->validate_files[0]['relativePath'] );
+	}
+
+	public function test_selected_base_folder_creates_missing_relative_folder_before_upload() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_id']   = '321';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_hash'] = 'basehash';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path']      = '/site1.com';
+
+		$client   = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( array( 'site1.com' => 321 ), $client->created_folders );
+		$this->assertSame( 654, $client->validate_parent_id );
+		$this->assertArrayNotHasKey( 'relativePath', $client->validate_files[0] );
+		$this->assertSame( 654, $client->create_multipart_parent_id );
+		$this->assertSame( 654, $client->create_s3_parent_id );
+	}
+
 	public function test_successful_relative_path_upload_remembers_drime_parent_id() {
 		$options = $this->base_options();
 		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path'] = '/Backups/Test Site';
@@ -417,6 +451,8 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 	public $completed_upload_id    = '';
 	public $validate_files         = array();
 	public $validate_parent_id     = null;
+	public $create_multipart_parent_id = null;
+	public $create_s3_parent_id    = null;
 	public $entry_parent_id        = 0;
 	public $aborted_key            = '';
 	public $aborted_upload_id      = '';
@@ -424,6 +460,8 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 	public $validate_calls         = 0;
 	public $sign_response          = array();
 	public $abort_result           = array( 'status' => 'success' );
+	public $children               = array();
+	public $created_folders        = array();
 
 	public function test_connection() {
 		return $this->connection_result;
@@ -437,9 +475,10 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 		return array( 'duplicates' => array() );
 	}
 
-	public function create_multipart_upload( $filename, $size, $extension ) {
+	public function create_multipart_upload( $filename, $size, $extension, $parent_id = null ) {
 		unset( $filename, $size, $extension );
 		++$this->create_multipart_calls;
+		$this->create_multipart_parent_id = $parent_id;
 		return array(
 			'key'      => 'new-key',
 			'uploadId' => 'new-upload',
@@ -489,14 +528,38 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 		);
 	}
 
-	public function create_s3_entry( $key, $client_name, $size, $extension ) {
+	public function create_s3_entry( $key, $client_name, $size, $extension, $parent_id = null ) {
 		unset( $key, $client_name, $size, $extension );
+		$this->create_s3_parent_id = $parent_id;
 		$file_entry = array( 'id' => 123 );
 
 		if ( $this->entry_parent_id > 0 ) {
 			$file_entry['parent_id'] = $this->entry_parent_id;
+		} elseif ( null !== $parent_id ) {
+			$file_entry['parent_id'] = $parent_id;
 		}
 
 		return array( 'fileEntry' => $file_entry );
+	}
+
+	public function list_folder_entries( $workspace_id, $folder_hash, $page = 1, $query = '' ) {
+		unset( $workspace_id, $page, $query );
+
+		return array(
+			'data' => isset( $this->children[ $folder_hash ] ) ? $this->children[ $folder_hash ] : array(),
+		);
+	}
+
+	public function create_folder( $workspace_id, $name, $parent_id = 0 ) {
+		unset( $workspace_id );
+		$this->created_folders[ $name ] = $parent_id;
+
+		return array(
+			'folder' => array(
+				'id'   => 654,
+				'hash' => 'createdhash',
+				'name' => $name,
+			),
+		);
 	}
 }

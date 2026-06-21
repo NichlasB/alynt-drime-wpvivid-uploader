@@ -33,26 +33,28 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 	 */
 	public static function defaults() {
 		return array(
-			'api_token'                 => '',
-			'workspace_id'              => 0,
-			'parent_folder_id'          => '',
-			'relative_path'             => '',
-			'backup_path_override'      => '',
-			'duplicate_mode'            => 'skip',
-			'auto_scan_enabled'         => false,
-			'server_cron_expected'      => false,
-			'scan_interval'             => 'fifteen_minutes',
-			'min_file_age_seconds'      => 900,
-			'multipart_chunk_size_mb'   => self::DEFAULT_MULTIPART_CHUNK_SIZE_MB,
-			'delete_local_after_upload' => false,
-			'remote_retention_enabled'  => false,
-			'remote_retention_days'     => self::DEFAULT_REMOTE_RETENTION_DAYS,
-			'failure_email_enabled'     => false,
-			'failure_email_recipients'  => self::default_failure_email_recipients(),
-			'max_retries'               => 3,
-			'diagnostics_enabled'       => false,
-			'diagnostics_min_level'     => 'warning',
-			'diagnostics_retention'     => 100,
+			'api_token'                  => '',
+			'workspace_id'               => 0,
+			'parent_folder_id'           => '',
+			'parent_folder_hash'         => '',
+			'parent_folder_display_path' => '',
+			'relative_path'              => '',
+			'backup_path_override'       => '',
+			'duplicate_mode'             => 'skip',
+			'auto_scan_enabled'          => false,
+			'server_cron_expected'       => false,
+			'scan_interval'              => 'fifteen_minutes',
+			'min_file_age_seconds'       => 900,
+			'multipart_chunk_size_mb'    => self::DEFAULT_MULTIPART_CHUNK_SIZE_MB,
+			'delete_local_after_upload'  => false,
+			'remote_retention_enabled'   => false,
+			'remote_retention_days'      => self::DEFAULT_REMOTE_RETENTION_DAYS,
+			'failure_email_enabled'      => false,
+			'failure_email_recipients'   => self::default_failure_email_recipients(),
+			'max_retries'                => 3,
+			'diagnostics_enabled'        => false,
+			'diagnostics_min_level'      => 'warning',
+			'diagnostics_retention'      => 100,
 		);
 	}
 
@@ -139,6 +141,13 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			$settings['parent_folder_id'] = '' === $parent_folder_id ? '' : (string) absint( $parent_folder_id );
 		}
 
+		$settings['parent_folder_hash']         = isset( $raw['parent_folder_hash'] ) ? $this->sanitize_folder_hash( (string) wp_unslash( $raw['parent_folder_hash'] ) ) : '';
+		$settings['parent_folder_display_path'] = isset( $raw['parent_folder_display_path'] ) ? $this->sanitize_display_path( (string) wp_unslash( $raw['parent_folder_display_path'] ) ) : '';
+		if ( '' === $settings['parent_folder_id'] ) {
+			$settings['parent_folder_hash']         = '';
+			$settings['parent_folder_display_path'] = '';
+		}
+
 		$settings['relative_path'] = isset( $raw['relative_path'] ) ? $this->sanitize_relative_path( (string) wp_unslash( $raw['relative_path'] ) ) : '';
 
 		if ( isset( $raw['backup_path_override'] ) ) {
@@ -216,6 +225,29 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$path = '/' . trim( $path, '/' );
 
 		return false === strpos( $path, '..' ) ? $path : '';
+	}
+
+	/**
+	 * Sanitizes a non-secret Drime folder hash.
+	 *
+	 * @param string $hash Hash.
+	 * @return string
+	 */
+	private function sanitize_folder_hash( $hash ) {
+		return preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $hash );
+	}
+
+	/**
+	 * Sanitizes a non-secret Drime display path.
+	 *
+	 * @param string $path Path.
+	 * @return string
+	 */
+	private function sanitize_display_path( $path ) {
+		$path = sanitize_text_field( str_replace( '\\', '/', $path ) );
+		$path = preg_replace( '#/+#', '/', $path );
+
+		return trim( (string) $path, '/' );
 	}
 
 	/**

@@ -19,13 +19,14 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Direct_Upload {
 	/**
 	 * Directly uploads a small file through Drime's /uploads endpoint.
 	 *
-	 * @param string $path File path.
-	 * @param string $remote_name Remote display name.
+	 * @param string   $path File path.
+	 * @param string   $remote_name Remote display name.
+	 * @param int|null $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>|WP_Error
 	 *
 	 * @since 0.1.0
 	 */
-	public function simple_upload( $path, $remote_name ) {
+	public function simple_upload( $path, $remote_name, $parent_id = null ) {
 		if ( ! function_exists( 'curl_init' ) || ! function_exists( 'curl_file_create' ) ) {
 			return new WP_Error( 'alynt_drime_no_curl', __( 'The PHP cURL extension is required for direct small-file uploads.', 'alynt-drime-wpvivid-uploader' ) );
 		}
@@ -37,7 +38,7 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Direct_Upload {
 			return new WP_Error( 'alynt_drime_missing_token', __( 'Add a Drime API token before uploading.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
-		$response = $this->execute_simple_upload_request( $token, $this->simple_upload_fields( $path, $remote_name, $settings ) );
+		$response = $this->execute_simple_upload_request( $token, $this->simple_upload_fields( $path, $remote_name, $settings, $parent_id ) );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -52,16 +53,22 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Direct_Upload {
 	 * @param string              $path File path.
 	 * @param string              $remote_name Remote display name.
 	 * @param array<string,mixed> $settings Settings.
+	 * @param int|null            $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>
 	 */
-	private function simple_upload_fields( $path, $remote_name, array $settings ) {
+	private function simple_upload_fields( $path, $remote_name, array $settings, $parent_id = null ) {
 		$fields = array(
 			'file'        => curl_file_create( $path, 'application/zip', $remote_name ),
 			'workspaceId' => (string) absint( $settings['workspace_id'] ),
 		);
 
-		if ( '' !== $settings['relative_path'] ) {
+		if ( null !== $parent_id && absint( $parent_id ) > 0 ) {
+			$fields['parentId'] = (string) absint( $parent_id );
+		} elseif ( '' !== $settings['relative_path'] ) {
 			$fields['relativePath'] = $settings['relative_path'];
+			if ( '' !== (string) $settings['parent_folder_id'] ) {
+				$fields['parentId'] = $this->parent_id_or_empty( $settings );
+			}
 		} else {
 			$fields['parentId'] = $this->parent_id_or_empty( $settings );
 		}

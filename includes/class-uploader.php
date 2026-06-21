@@ -17,7 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Alynt_Drime_WPvivid_Uploader_Uploader {
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Active_Upload;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Destination;
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Session;
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts;
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Retry_State;
 
@@ -348,19 +350,24 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 		$settings    = $this->settings->get();
 		$size        = filesize( $path );
 		$remote_name = basename( $path );
+		$parent_id   = $this->prepare_upload_parent_id( $settings );
 
 		if ( false === $size || $size <= 0 ) {
 			return new WP_Error( 'alynt_drime_empty_file', __( 'The queued backup file is empty.', 'alynt-drime-wpvivid-uploader' ) );
 		}
 
-		$remote_name = $this->preflight_remote_name( $remote_name, (int) $size, $settings );
+		if ( is_wp_error( $parent_id ) ) {
+			return $parent_id;
+		}
+
+		$remote_name = $this->preflight_remote_name( $remote_name, (int) $size, $settings, $parent_id );
 		if ( is_wp_error( $remote_name ) || false === $remote_name ) {
 			return false === $remote_name ? new WP_Error( 'alynt_drime_duplicate_skipped', __( 'A file with this name already exists in Drime, so the upload was skipped.', 'alynt-drime-wpvivid-uploader' ) ) : $remote_name;
 		}
 
 		return $size < Alynt_Drime_WPvivid_Uploader_Drime_Client::MIN_MULTIPART_CHUNK_SIZE
-			? $this->simple_upload_item( $path, $remote_name, (int) $size )
-			: $this->multipart_upload( $path, $remote_name, (int) $size, $item );
+			? $this->simple_upload_item( $path, $remote_name, (int) $size, $parent_id )
+			: $this->multipart_upload( $path, $remote_name, (int) $size, $item, $parent_id );
 	}
 
 	/**
@@ -385,27 +392,29 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	 * @param string              $remote_name Remote name.
 	 * @param int                 $size Size.
 	 * @param array<string,mixed> $settings Settings.
+	 * @param int|null            $parent_id Concrete upload parent folder ID.
 	 * @return string|false|WP_Error
 	 */
-	private function preflight_remote_name( $remote_name, $size, array $settings ) {
+	private function preflight_remote_name( $remote_name, $size, array $settings, $parent_id = null ) {
 		$connection = $this->client->test_connection();
 		if ( is_wp_error( $connection ) ) {
 			return $connection;
 		}
 
-		return $this->resolve_duplicate_mode( $remote_name, $size, $settings );
+		return $this->resolve_duplicate_mode( $remote_name, $size, $settings, $parent_id );
 	}
 
 	/**
 	 * Uploads a small queued item.
 	 *
-	 * @param string $path File path.
-	 * @param string $remote_name Remote name.
-	 * @param int    $size Size.
+	 * @param string   $path File path.
+	 * @param string   $remote_name Remote name.
+	 * @param int      $size Size.
+	 * @param int|null $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	private function simple_upload_item( $path, $remote_name, $size ) {
-		$response = $this->client->simple_upload( $path, $remote_name );
+	private function simple_upload_item( $path, $remote_name, $size, $parent_id = null ) {
+		$response = $this->client->simple_upload( $path, $remote_name, $parent_id );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -424,17 +433,21 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	 * @param string              $remote_name Remote name.
 	 * @param int                 $size Size.
 	 * @param array<string,mixed> $settings Settings.
+	 * @param int|null            $parent_id Concrete upload parent folder ID.
 	 * @return string|false|WP_Error
 	 */
-	private function resolve_duplicate_mode( $remote_name, $size, array $settings ) {
-		$parent_id = $this->resolved_drime_parent_id( $settings );
-		$file      = array(
+	private function resolve_duplicate_mode( $remote_name, $size, array $settings, $parent_id = null ) {
+		$has_parent_override = null !== $parent_id;
+		$parent_id           = $has_parent_override ? absint( $parent_id ) : $this->resolved_drime_parent_id( $settings );
+		$file                = array(
 			'name' => $remote_name,
 			'size' => $size,
 		);
 
-		if ( $parent_id <= 0 ) {
-			$file['relativePath'] = '' !== $settings['relative_path'] ? $settings['relative_path'] : '/';
+		if ( ! $has_parent_override && '' !== $settings['relative_path'] && ! empty( $settings['parent_folder_id'] ) ) {
+			$file['relativePath'] = $settings['relative_path'];
+		} elseif ( $parent_id <= 0 ) {
+			$file['relativePath'] = '/';
 		}
 
 		$validation = $this->client->validate_upload( array( $file ), $parent_id > 0 ? $parent_id : null );

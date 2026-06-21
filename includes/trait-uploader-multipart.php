@@ -23,13 +23,14 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 	 * @param string              $remote_name Remote name.
 	 * @param int                 $size Size.
 	 * @param array<string,mixed> $item Queue item.
+	 * @param int|null            $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	private function multipart_upload( $path, $remote_name, $size, array $item ) {
+	private function multipart_upload( $path, $remote_name, $size, array $item, $parent_id = null ) {
 		$extension = $this->multipart_extension( $remote_name );
 		$this->log_multipart_started( $remote_name, $size );
 
-		$session = $this->multipart_session( $path, $remote_name, $size, $extension, $item );
+		$session = $this->multipart_session( $path, $remote_name, $size, $extension, $item, $parent_id );
 		if ( is_wp_error( $session ) ) {
 			return $session;
 		}
@@ -44,7 +45,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 			return $parts;
 		}
 
-		return $this->complete_multipart_session( $path, $remote_name, $size, $extension, $session, $parts );
+		return $this->complete_multipart_session( $path, $remote_name, $size, $extension, $session, $parts, $parent_id );
 	}
 
 	/**
@@ -87,12 +88,13 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 	 * @param int                 $size Size.
 	 * @param string              $extension Extension.
 	 * @param array<string,mixed> $item Queue item.
+	 * @param int|null            $parent_id Concrete upload parent folder ID.
 	 * @return array{key:string,upload_id:string,total:int}|WP_Error
 	 */
-	private function multipart_session( $path, $remote_name, $size, $extension, array $item ) {
+	private function multipart_session( $path, $remote_name, $size, $extension, array $item, $parent_id = null ) {
 		$chunk_size   = $this->multipart_chunk_size();
 		$resume_state = $this->get_resume_state( $item, $path, $remote_name, $chunk_size );
-		$created      = null === $resume_state ? $this->client->create_multipart_upload( $remote_name, $size, $extension ) : $resume_state;
+		$created      = null === $resume_state ? $this->client->create_multipart_upload( $remote_name, $size, $extension, $parent_id ) : $resume_state;
 
 		if ( is_wp_error( $created ) ) {
 			return $created;
@@ -106,48 +108,6 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 			'key'       => (string) $created['key'],
 			'upload_id' => (string) $created['uploadId'],
 			'total'     => (int) ceil( $size / $chunk_size ),
-		);
-	}
-
-	/**
-	 * Completes a multipart session.
-	 *
-	 * @param string                                       $path Path.
-	 * @param string                                       $remote_name Remote name.
-	 * @param int                                          $size Size.
-	 * @param string                                       $extension Extension.
-	 * @param array{key:string,upload_id:string,total:int} $session Multipart session.
-	 * @param array<int,array<string,mixed>>               $parts Completed parts.
-	 * @return array<string,mixed>|WP_Error
-	 */
-	private function complete_multipart_session( $path, $remote_name, $size, $extension, array $session, array $parts ) {
-		$completed = $this->client->complete_multipart_upload( $session['key'], $session['upload_id'], array_values( $parts ) );
-		if ( is_wp_error( $completed ) ) {
-			return $completed;
-		}
-
-		$this->logger->event(
-			'upload',
-			'info',
-			'multipart_completed',
-			'Multipart upload completed.',
-			array(
-				'file'  => $remote_name,
-				'parts' => count( $parts ),
-			)
-		);
-
-		$entry = $this->client->create_s3_entry( $session['key'], $remote_name, $size, $extension );
-		if ( is_wp_error( $entry ) ) {
-			return $entry;
-		}
-
-		return array(
-			'path'        => $path,
-			'remote_name' => $remote_name,
-			'size'        => $size,
-			'key'         => $session['key'],
-			'drime'       => $entry,
 		);
 	}
 

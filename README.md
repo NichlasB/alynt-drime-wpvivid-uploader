@@ -9,6 +9,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Handles WPvivid-listed split archives such as `.part001.zip` and `.part002.zip` as complete sets.
 - Queues uploads, tracks attempts, enforces retry limits, and prevents duplicate queue entries.
 - Uploads small files through Drime direct upload and larger files through resumable multipart upload.
+- Lets administrators browse existing Drime folders and preview the resolved upload destination before backups run.
 - Caches resolved Drime parent folder IDs so remote duplicate checks work after relative-path uploads.
 - Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
 - Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
@@ -43,7 +44,7 @@ The plugin includes `GitHub Plugin URI: NichlasB/alynt-drime-wpvivid-uploader` f
 
 The settings screen controls:
 
-- Drime API token, workspace ID, parent folder ID, and optional relative path.
+- Drime API token, workspace ID, selected or manually entered parent folder ID, and optional relative subpath.
 - Optional WPvivid backup path override.
 - Duplicate handling mode: skip existing files or rename new uploads.
 - Automatic WP-Cron scanning.
@@ -81,6 +82,10 @@ No. Remote retention is disabled by default, runs only from manual admin actions
 ### How are failed upload emails delivered?
 
 Failure emails are disabled by default and use WordPress `wp_mail()`, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and include only safe operational details such as site URL, backup filename, sanitized reason, attempt count, timestamp, and the admin page URL.
+
+### How do the Drime base folder and relative path work?
+
+Select an existing Drime base folder, then enter the site folder or subpath in **Relative Path**. For example, selecting `General/Files/Backups` and entering `site1.com` resolves uploads to `General/Files/Backups/site1.com`. Browsing and previewing are read-only; missing subfolders are created only when an upload needs them.
 
 ### Does this upload incomplete WPvivid files?
 

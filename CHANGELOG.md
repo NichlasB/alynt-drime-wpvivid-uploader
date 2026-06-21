@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-22
+
+### Added
+
+- Added a read-only Drime folder browser on the settings screen for selecting an existing base folder without copying folder IDs from Drime URLs.
+- Added a read-only destination preview that resolves the selected base folder plus relative subpath and reports existing or missing folder segments before uploads run.
+
+### Changed
+
+- Drime uploads now resolve or create the final selected-base-plus-relative-path folder during upload, then send backup bytes to that concrete parent folder.
+
 ## [0.3.0] - 2026-06-21
 
 ### Added

@@ -3,7 +3,7 @@
  * Plugin Name:       Alynt Drime WPvivid Uploader
  * Plugin URI:        https://alynt.com/
  * Description:       Upload completed WPvivid local backup archives to Drime.
- * Version:           0.3.0
+ * Version:           0.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Alynt
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.3.0' );
+define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.4.0' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP', '6.0' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP', '7.4' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_FILE', __FILE__ );
@@ -74,9 +74,13 @@ $alynt_drime_wpvivid_uploader_includes = array(
 	'includes/trait-scanner-metadata.php',
 	'includes/trait-drime-client-direct-upload.php',
 	'includes/trait-drime-client-multipart.php',
+	'includes/trait-folder-browser-normalization.php',
+	'includes/trait-folder-browser-preview.php',
 	'includes/trait-failure-notifier-content.php',
 	'includes/trait-uploader-active-upload.php',
+	'includes/trait-uploader-destination.php',
 	'includes/trait-uploader-multipart.php',
+	'includes/trait-uploader-multipart-session.php',
 	'includes/trait-uploader-multipart-parts.php',
 	'includes/trait-uploader-retry-state.php',
 	'includes/trait-option-storage.php',
@@ -94,6 +98,7 @@ $alynt_drime_wpvivid_uploader_includes = array(
 	'includes/class-backup-registry.php',
 	'includes/class-queue.php',
 	'includes/class-drime-client.php',
+	'includes/class-folder-browser.php',
 	'includes/class-uploader.php',
 	'includes/class-remote-retention.php',
 	'includes/class-cron-health.php',

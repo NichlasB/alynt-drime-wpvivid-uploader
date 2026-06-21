@@ -19,14 +19,15 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Multipart {
 	/**
 	 * Creates a multipart upload.
 	 *
-	 * @param string $filename Filename.
-	 * @param int    $size Size.
-	 * @param string $extension Extension.
+	 * @param string   $filename Filename.
+	 * @param int      $size Size.
+	 * @param string   $extension Extension.
+	 * @param int|null $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>|WP_Error
 	 *
 	 * @since 0.1.0
 	 */
-	public function create_multipart_upload( $filename, $size, $extension ) {
+	public function create_multipart_upload( $filename, $size, $extension, $parent_id = null ) {
 		$settings = $this->settings->get();
 		$body     = array(
 			'filename'    => $filename,
@@ -35,9 +36,13 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Multipart {
 			'extension'   => $extension,
 			'workspaceId' => absint( $settings['workspace_id'] ),
 		);
-
-		if ( '' !== $settings['relative_path'] ) {
+		if ( null !== $parent_id && absint( $parent_id ) > 0 ) {
+			$body['parentId'] = absint( $parent_id );
+		} elseif ( '' !== $settings['relative_path'] ) {
 			$body['relativePath'] = $settings['relative_path'];
+			if ( '' !== (string) $settings['parent_folder_id'] ) {
+				$body['parentId'] = $this->parent_id_or_null( $settings );
+			}
 		} else {
 			$body['parentId'] = $this->parent_id_or_null( $settings );
 		}
@@ -190,15 +195,16 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Multipart {
 	/**
 	 * Registers an uploaded S3 object as a Drime entry.
 	 *
-	 * @param string $key Key.
-	 * @param string $client_name Display name.
-	 * @param int    $size Size.
-	 * @param string $extension Extension.
+	 * @param string   $key Key.
+	 * @param string   $client_name Display name.
+	 * @param int      $size Size.
+	 * @param string   $extension Extension.
+	 * @param int|null $parent_id Concrete upload parent folder ID.
 	 * @return array<string,mixed>|WP_Error
 	 *
 	 * @since 0.1.0
 	 */
-	public function create_s3_entry( $key, $client_name, $size, $extension ) {
+	public function create_s3_entry( $key, $client_name, $size, $extension, $parent_id = null ) {
 		$settings = $this->settings->get();
 		$body     = array(
 			'filename'        => basename( $key ),
@@ -208,9 +214,13 @@ trait Alynt_Drime_WPvivid_Uploader_Drime_Client_Multipart {
 			'clientExtension' => $extension,
 			'workspaceId'     => absint( $settings['workspace_id'] ),
 		);
-
-		if ( '' !== $settings['relative_path'] ) {
+		if ( null !== $parent_id && absint( $parent_id ) > 0 ) {
+			$body['parentId'] = absint( $parent_id );
+		} elseif ( '' !== $settings['relative_path'] ) {
 			$body['relativePath'] = $settings['relative_path'];
+			if ( '' !== (string) $settings['parent_folder_id'] ) {
+				$body['parentId'] = $this->parent_id_or_null( $settings );
+			}
 		} else {
 			$body['parentId'] = $this->parent_id_or_null( $settings );
 		}

@@ -66,6 +66,113 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 	}
 
 	/**
+	 * Gets the authenticated Drime user.
+	 *
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.3.0
+	 */
+	public function get_logged_user() {
+		$response = $this->request( 'GET', '/cli/loggedUser' );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$user_id = $this->extract_user_id( $response );
+		if ( $user_id <= 0 ) {
+			return $this->malformed_response( 'get_logged_user' );
+		}
+
+		$response['id'] = $user_id;
+
+		return $response;
+	}
+
+	/**
+	 * Lists folders for the authenticated Drime user.
+	 *
+	 * @param int $workspace_id Workspace ID.
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.3.0
+	 */
+	public function list_user_folders( $workspace_id = 0 ) {
+		$user = $this->get_logged_user();
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		return $this->request( 'GET', '/users/' . absint( $user['id'] ) . '/folders?workspaceId=' . absint( $workspace_id ) );
+	}
+
+	/**
+	 * Lists child folder entries.
+	 *
+	 * @param int    $workspace_id Workspace ID.
+	 * @param string $folder_hash Folder hash.
+	 * @param int    $page Page number.
+	 * @param string $query Search query.
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.3.0
+	 */
+	public function list_folder_entries( $workspace_id, $folder_hash, $page = 1, $query = '' ) {
+		$args = array(
+			'workspaceId' => absint( $workspace_id ),
+			'type'        => 'folder',
+			'folderId'    => $this->sanitize_folder_hash( $folder_hash ),
+			'page'        => max( 1, absint( $page ) ),
+			'perPage'     => 100,
+		);
+
+		$query = sanitize_text_field( $query );
+		if ( '' !== $query ) {
+			$args['search'] = $query;
+		}
+
+		return $this->request( 'GET', '/drive/file-entries?' . http_build_query( $args, '', '&', PHP_QUERY_RFC3986 ) );
+	}
+
+	/**
+	 * Gets a folder breadcrumb path.
+	 *
+	 * @param string $folder_hash Folder hash.
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.3.0
+	 */
+	public function get_folder_path( $folder_hash ) {
+		$folder_hash = $this->sanitize_folder_hash( $folder_hash );
+		if ( '' === $folder_hash ) {
+			return new WP_Error( 'alynt_drime_missing_folder_hash', __( 'A Drime folder hash is required.', 'alynt-drime-wpvivid-uploader' ) );
+		}
+
+		return $this->request( 'GET', '/folders/' . rawurlencode( $folder_hash ) . '/path' );
+	}
+
+	/**
+	 * Creates a Drime folder.
+	 *
+	 * @param int    $workspace_id Workspace ID.
+	 * @param string $name Folder name.
+	 * @param int    $parent_id Parent folder ID.
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.3.0
+	 */
+	public function create_folder( $workspace_id, $name, $parent_id = 0 ) {
+		$body = array(
+			'name' => sanitize_text_field( $name ),
+		);
+
+		if ( absint( $parent_id ) > 0 ) {
+			$body['parentId'] = absint( $parent_id );
+		}
+
+		return $this->request( 'POST', '/folders?workspaceId=' . absint( $workspace_id ), $body );
+	}
+
+	/**
 	 * Validates duplicates.
 	 *
 	 * @param array<int,array<string,mixed>> $files Files.
@@ -119,9 +226,11 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 
 		if ( null !== $parent_id && absint( $parent_id ) > 0 ) {
 			$body['parentId'] = absint( $parent_id );
-		} elseif ( '' !== $settings['relative_path'] ) {
+		}
+
+		if ( '' !== $settings['relative_path'] && ( null === $parent_id || absint( $parent_id ) <= 0 || '' !== (string) $settings['parent_folder_id'] ) ) {
 			$body['relativePath'] = $settings['relative_path'];
-		} else {
+		} elseif ( null === $parent_id || absint( $parent_id ) <= 0 ) {
 			$body['parentId'] = $this->parent_id_or_null( $settings );
 		}
 
@@ -334,5 +443,37 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 	 */
 	private function parent_id_or_empty( array $settings ) {
 		return '' === (string) $settings['parent_folder_id'] ? '' : (string) absint( $settings['parent_folder_id'] );
+	}
+
+	/**
+	 * Extracts a user ID from common Drime response shapes.
+	 *
+	 * @param array<string,mixed> $response Response.
+	 * @return int
+	 */
+	private function extract_user_id( array $response ) {
+		if ( ! empty( $response['id'] ) ) {
+			return absint( $response['id'] );
+		}
+
+		if ( ! empty( $response['user'] ) && is_array( $response['user'] ) && ! empty( $response['user']['id'] ) ) {
+			return absint( $response['user']['id'] );
+		}
+
+		if ( ! empty( $response['data'] ) && is_array( $response['data'] ) && ! empty( $response['data']['id'] ) ) {
+			return absint( $response['data']['id'] );
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Sanitizes a Drime folder hash for endpoint paths and query strings.
+	 *
+	 * @param string $folder_hash Folder hash.
+	 * @return string
+	 */
+	private function sanitize_folder_hash( $folder_hash ) {
+		return preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $folder_hash );
 	}
 }

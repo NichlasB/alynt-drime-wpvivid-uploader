@@ -1,6 +1,6 @@
 # Alynt Drime WPvivid Uploader Implementation Plan
 
-Updated: 2026-06-20
+Updated: 2026-06-21
 
 ## Current State
 
@@ -263,6 +263,121 @@ Open decisions before implementation:
 - Confirm whether recipients should allow comma-separated emails, one email per line, or both. Implemented: both, normalized one per line internally.
 - Confirm whether the first trigger should include manual upload failures, terminal cron failures, or both. Implemented: both, deduped by backup signature and failure state.
 - Confirm whether to include absolute local backup paths in email. Implemented: no; emails use basenames only and redact URL/path substrings in failure reasons.
+
+### Feature Slice: Drime Folder Browser And Destination Validator
+
+Status: implemented in source. PHPUnit, PHPCS, build verification, and LocalWP/Drime runtime E2E are complete.
+
+Goal:
+
+- Let administrators browse existing Drime folders directly from the plugin settings page instead of manually extracting folder IDs from Drime URLs.
+- Keep the existing storage model backward-compatible: the selected base folder maps to `parent_folder_id`, and the typed site folder/subpath maps to `relative_path`.
+- Support the practical workflow:
+  - Select existing base folder: `General/Files/Backups`.
+  - Type site folder: `site1.com`.
+  - Upload destination resolves to `General/Files/Backups/site1.com`.
+  - If `site1.com` already exists under the selected base folder, use it.
+  - If `site1.com` does not exist, let the existing upload path creation flow create it before upload.
+- Reduce destination mistakes by showing the resolved human-readable destination before uploads run.
+
+Drime API references to verify during implementation:
+
+- API base URL is `https://app.drime.cloud/api/v1`.
+- Authentication uses the saved bearer token.
+- `GET /cli/loggedUser` returns the authenticated user ID needed by the user-folder endpoint.
+- `GET /users/{userId}/folders?workspaceId=0` returns a folder tree with `id`, `name`, `parent_id`, `path`, `workspace_id`, and often `hash`.
+- `GET /drive/file-entries?workspaceId=0&type=folder&folderId={folderHash}` can list folder children, and supports pagination/search filters.
+- `GET /folders/{folderHash}/path` returns a breadcrumb path for display.
+- `POST /folders?workspaceId=0` creates a folder with `name` and `parentId`; keep this write path behind existing upload destination creation or an explicit future "Create Missing Folders" action.
+
+Recommended first slice:
+
+- Add Drime client methods:
+  - `get_logged_user()`. Done.
+  - `list_user_folders( $workspace_id )`. Done.
+  - `list_folder_entries( $workspace_id, $folder_hash, $page, $query )`. Done.
+  - `get_folder_path( $folder_hash )`. Done.
+  - Reuse the existing create-folder/path-resolution code where possible instead of duplicating destination creation. Done; browsing and preview do not create folders.
+- Add settings fields or metadata while preserving existing settings:
+  - `parent_folder_id` remains the canonical upload anchor. Done.
+  - `relative_path` remains the canonical subpath/site-folder field. Done.
+  - Add optional non-secret display metadata such as `parent_folder_hash` and `parent_folder_display_path` if needed for breadcrumbs and validation. Done.
+  - Existing installs with only a manually entered `parent_folder_id` must keep working. Done; preview can resolve the hash from the user-folder list when possible.
+- Add a WordPress-native folder browser UI in the existing settings page:
+  - Button: `Browse Drime Folders`. Done.
+  - Browsing panel or modal lists folders with Name, Path/Breadcrumb, and actions. Done.
+  - Row actions: `Open` and `Use as Base Folder`. Done.
+  - Show selected base folder as human-readable text and keep the raw folder ID visible or available for advanced users. Done.
+  - Keep the site folder field as normal text input, with help text explaining that missing folders are created during upload. Done.
+  - Add `Preview Destination` / `Validate Destination` action that resolves the selected base folder plus relative path and reports existing vs missing folder segments without uploading backup bytes. Done.
+- Use `wp_ajax_` admin actions for browser interactions:
+  - Gate with `manage_options`. Done.
+  - Verify nonces for every request. Done.
+  - Return sanitized JSON only. Done.
+  - Do not expose the saved Drime token in responses, diagnostics, browser data attributes, or JavaScript. Done.
+  - Add visible loading states, disabled buttons during requests, and an `aria-live` status region. Done.
+- Keep the first implementation read-safe by default:
+  - Browsing and destination preview are read-only API calls. Done.
+  - Do not create folders merely by browsing/selecting a base folder. Done.
+  - Continue creating missing relative-path folders only when the upload path actually needs them, unless a later explicit manual "Create Missing Folders" action is approved. Done.
+- Add diagnostics events:
+  - `folder_browser_loaded`. Done.
+  - `folder_browser_failed`. Done.
+  - `destination_preview_started`. Done.
+  - `destination_preview_finished`. Done.
+  - `destination_preview_failed`. Done.
+  - Redact URLs/tokens as the existing diagnostics layer already requires. Done.
+
+Tests and verification:
+
+- Unit-test Drime client request shapes and response parsing for logged-user, folder tree, file entries, and folder path endpoints. Done.
+- Unit-test settings sanitization for any new display metadata fields. Done.
+- Unit-test that old settings with only `parent_folder_id` and `relative_path` still resolve uploads the same way. Done for upload request/body behavior.
+- Unit-test that AJAX handlers require `manage_options` and valid nonces. Pending; handlers are implemented with capability and nonce checks and need runtime/E2E verification.
+- Unit-test that AJAX responses never include the API token. Done at service normalization level; runtime AJAX response inspection remains pending.
+- Unit-test destination preview behavior for:
+  - existing base folder and existing site folder. Done.
+  - existing base folder and missing site folder. Done.
+  - invalid/missing parent folder. Done.
+  - Drime API error. Done.
+  - empty relative path. Done.
+- Verify in LocalWP with `plugin-tester local-only` after the Site Operations confirmation gate:
+  - Confirm Novamira MCP is available before starting; if unavailable, stop and ask the user to enable it.
+  - Browse folders with the saved Drime token.
+  - Select `General/Files/Backups`-style base folder.
+  - Type a site folder such as `site1.com`.
+  - Preview the resolved destination.
+  - Confirm upload behavior still creates/uses the final relative path correctly.
+
+Feature-stage workflows to run after implementation, in this order:
+
+1. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_LIGHT_REVIEW_PROMPT.md`
+2. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md`
+   - Applicable because this feature will likely add PHP and JavaScript for AJAX/admin UI.
+3. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md`
+   - Applicable because the feature changes admin settings UI and async interactions.
+4. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_SECURITY_REVIEW_PROMPT.md`
+   - Applicable because the feature uses saved tokens, AJAX, remote API calls, and settings writes.
+5. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds6-maintenance\DOCUMENTATION_SYNC_AUDIT_PROMPT.md`
+   - Applicable after implementation because README/readme/settings docs and changelog will need to match the UI and behavior.
+
+End-to-end testing workflow to run after implementation and feature-stage reviews:
+
+- Run `C:\Users\Captain\Documents\AI Workflows\Task Workflows\WordPress\wordpress-component-testing-troubleshooting-debugging-workflow.md` against the plugin on `plugin-tester local-only`.
+- Do a full plugin E2E pass, including the new Drime folder browser, destination preview, settings save/reload, WPvivid scan/upload path, diagnostics, and debug/runtime evidence.
+- Ensure Novamira MCP is available before the E2E pass. If it is unavailable, stop and let the user enable it before continuing.
+
+Release workflow after successful implementation and E2E:
+
+- Run `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds5-git\GIT_OPERATIONS_PROMPT.md` Option C.
+- Follow the mandatory release approval checkpoint before commit/tag/push/GitHub release publishing.
+
+Implementation decisions:
+
+- The browser starts from the user-folder list and supports child navigation by folder hash instead of creating folders or loading every nested child eagerly.
+- The plugin stores non-secret `parent_folder_hash` and `parent_folder_display_path` metadata so saved selections can display and preview cleanly.
+- The first version includes read-only preview only; there is no manual `Create Missing Folders` action.
+- LocalWP/Drime E2E showed direct uploads do not reliably honor `relativePath` alongside `parentId`; upload processing now resolves or creates the final concrete destination folder when needed, then uploads to that folder ID.
 
 ### 7. Admin UX Pass
 

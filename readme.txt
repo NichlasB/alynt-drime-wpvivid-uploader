@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Upload completed WPvivid local backup archives to Drime.
 
 Alynt Drime WPvivid Uploader is a companion plugin that scans completed local WPvivid backup archives, queues stable backup files, and uploads them to Drime.
 
-The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, scheduled-scan cron health tracking, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
+The plugin includes Drime destination settings with folder browsing and read-only destination preview, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, scheduled-scan cron health tracking, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
 
 == Installation ==
 
@@ -50,6 +50,10 @@ It records runtime evidence. A scheduled scan run from WP-CLI is shown as likely
 
 Failure emails are disabled by default and use WordPress mail, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and avoid tokens, signed URLs, raw request bodies, file contents, stack traces, and absolute server paths.
 
+= How do the Drime base folder and relative path work? =
+
+Select an existing Drime base folder, then enter the site folder or subpath in Relative Path. Browsing and previewing are read-only; missing subfolders are created only when an upload needs them.
+
 = Does this expose custom developer hooks? =
 
 No public custom actions or filters are exposed in version 0.3.0.
@@ -57,6 +61,10 @@ No public custom actions or filters are exposed in version 0.3.0.
 == Changelog ==
 
 = Unreleased =
+
+= 0.4.0 =
+* Added a read-only Drime folder browser and destination preview for selecting an existing base folder and checking the resolved upload path.
+* Changed uploads so a selected base folder can be combined with a typed relative subpath, creating the final subfolder during upload when needed.
 
 = 0.3.0 =
 * Added cron health tracking for scheduled scans, including last runner evidence, WP-CLI scan evidence, WP-Cron disabled status, and server-cron health guidance.
@@ -80,6 +88,9 @@ No public custom actions or filters are exposed in version 0.3.0.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.4.0 =
+Adds Drime folder browsing and read-only destination preview for safer backup destination setup. No breaking changes.
 
 = 0.3.0 =
 Adds cron-health evidence and server-cron expectation reminders for automatic scan reliability. No breaking changes.
