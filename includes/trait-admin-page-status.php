@@ -196,6 +196,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 			<caption class="screen-reader-text"><?php esc_html_e( 'Recent diagnostic events', 'alynt-drime-wpvivid-uploader' ); ?></caption>
 			<thead>
 				<tr>
+					<th scope="col"><?php esc_html_e( '#', 'alynt-drime-wpvivid-uploader' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Time', 'alynt-drime-wpvivid-uploader' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Level', 'alynt-drime-wpvivid-uploader' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Category', 'alynt-drime-wpvivid-uploader' ); ?></th>
@@ -204,8 +205,9 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ( $events as $event ) : ?>
+				<?php foreach ( $events as $index => $event ) : ?>
 					<tr>
+						<th scope="row"><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></th>
 						<td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', isset( $event['time'] ) ? (int) $event['time'] : time() ) ); ?></td>
 						<td><?php echo esc_html( isset( $event['level'] ) ? (string) $event['level'] : '' ); ?></td>
 						<td><?php echo esc_html( isset( $event['category'] ) ? (string) $event['category'] : '' ); ?></td>

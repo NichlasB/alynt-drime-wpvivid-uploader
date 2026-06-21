@@ -151,7 +151,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 			<th scope="row"><label for="alynt-min-file-age"><?php esc_html_e( 'Minimum File Age', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 			<td>
 				<input id="alynt-min-file-age" name="alynt_drime_wpvivid_settings[min_file_age_seconds]" type="number" min="60" step="60" value="<?php echo esc_attr( (string) $settings['min_file_age_seconds'] ); ?>" aria-describedby="alynt-min-file-age-description">
-				<p id="alynt-min-file-age-description" class="description"><?php esc_html_e( 'Files must also keep the same size across scans before they are queued.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				<p id="alynt-min-file-age-description" class="description"><?php esc_html_e( 'Enter the minimum age in seconds. Files must also keep the same size across scans before they are queued.', 'alynt-drime-wpvivid-uploader' ); ?></p>
 			</td>
 		</tr>
 		<tr>
@@ -173,7 +173,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 			<th scope="row"><label for="alynt-delete-local"><?php esc_html_e( 'Delete Local Files', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 			<td>
 				<label><input id="alynt-delete-local" name="alynt_drime_wpvivid_settings[delete_local_after_upload]" type="checkbox" value="1" <?php checked( ! empty( $settings['delete_local_after_upload'] ) ); ?> aria-describedby="alynt-delete-local-description"> <?php esc_html_e( 'Delete local backup files after confirmed Drime upload.', 'alynt-drime-wpvivid-uploader' ); ?></label>
-				<p id="alynt-delete-local-description" class="description"><?php esc_html_e( 'Keep this off until end-to-end testing is complete.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+				<p id="alynt-delete-local-description" class="description"><?php esc_html_e( 'For production, enable this only after Drime uploads and restore procedures are verified and your local retention policy allows removing WPvivid files.', 'alynt-drime-wpvivid-uploader' ); ?></p>
 			</td>
 		</tr>
 		<tr>

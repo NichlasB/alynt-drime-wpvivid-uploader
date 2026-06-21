@@ -82,7 +82,7 @@ The scanner waits until files are old enough and their size is stable across sca
 
 ### Does this expose developer hooks?
 
-No public custom actions or filters are exposed in `0.1.1`. See [docs/HOOKS.md](docs/HOOKS.md).
+No public custom actions or filters are exposed in `0.2.0`. See [docs/HOOKS.md](docs/HOOKS.md).
 
 ## Changelog
 
