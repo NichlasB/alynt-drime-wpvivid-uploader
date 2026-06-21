@@ -126,9 +126,11 @@ class Alynt_Drime_WPvivid_Uploader_Cron {
 	 * @since 0.1.0
 	 */
 	public function scan() {
-		$this->plugin->logger()->event( 'cron', 'info', 'scan_started', 'Scheduled scan started.' );
+		$runner = $this->plugin->cron_health()->record_scheduled_scan();
+
+		$this->plugin->logger()->event( 'cron', 'info', 'scan_started', 'Scheduled scan started.', array( 'runner' => $runner ) );
 		$this->plugin->scan_and_queue();
-		$this->plugin->logger()->event( 'cron', 'info', 'scan_finished', 'Scheduled scan finished.' );
+		$this->plugin->logger()->event( 'cron', 'info', 'scan_finished', 'Scheduled scan finished.', array( 'runner' => $runner ) );
 	}
 
 	/**

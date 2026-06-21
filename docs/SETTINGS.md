@@ -13,6 +13,7 @@ Option name: `alynt_drime_wpvivid_settings`
 | `backup_path_override` | string | `''` | `sanitize_text_field` | WPvivid Source | Optional local WPvivid backup path override. |
 | `duplicate_mode` | string | `skip` | `sanitize_key`, allowlist `skip` or `rename` | Behavior | Controls whether existing Drime filenames are skipped or renamed. |
 | `auto_scan_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables scheduled WP-Cron scanning. |
+| `server_cron_expected` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables admin reminders when scheduled scans should be driven by WP-CLI but no WP-CLI scan evidence has been observed. |
 | `scan_interval` | string | `fifteen_minutes` | internal fixed value | Internal | WP-Cron schedule key used by automatic scanning. |
 | `min_file_age_seconds` | integer | `900` | `absint`, minimum `60` | Behavior | Minimum modified age before a file can be queued. |
 | `multipart_chunk_size_mb` | integer | `32` | `absint`, range `5` to `64` | Behavior | Multipart upload part size in MB. `32` is recommended for large backups. |
@@ -38,6 +39,7 @@ These options are owned by the plugin and are removed on uninstall.
 | `alynt_drime_wpvivid_failed_uploads` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Failed upload records keyed by signature. |
 | `alynt_drime_wpvivid_drime_locations` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Backup_Registry` | Cached Drime parent folder IDs for configured relative paths. |
 | `alynt_drime_wpvivid_failure_notifications` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Failure_Notifier` | Sent-notification ledger keyed by backup signature and failure state to suppress duplicate failure emails. |
+| `alynt_drime_wpvivid_cron_health` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Cron_Health` | Scheduled-scan runner evidence used to report whether scans have been observed from WP-CLI, HTTP WP-Cron, manual admin actions, or an unknown runtime. |
 | `alynt_drime_wpvivid_file_snapshots` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Scanner` | File size/modified-time snapshots used to verify stability across scans. |
 | `alynt_drime_wpvivid_logs` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Logger` | Redacted diagnostics events when diagnostics are enabled. |
 | `alynt_drime_wpvivid_upload_lock` | array | `array()` | `Alynt_Drime_WPvivid_Uploader_Uploader` | Short-lived upload worker lock to prevent concurrent queue processing. |

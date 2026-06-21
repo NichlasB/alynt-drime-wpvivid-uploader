@@ -2,9 +2,9 @@
 Contributors: alynt
 Tags: backup, wpvivid, drime
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Upload completed WPvivid local backup archives to Drime.
 
 Alynt Drime WPvivid Uploader is a companion plugin that scans completed local WPvivid backup archives, queues stable backup files, and uploads them to Drime.
 
-The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
+The plugin includes Drime destination settings, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, scheduled-scan cron health tracking, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
 
 == Installation ==
 
@@ -42,17 +42,29 @@ The scanner waits until files are old enough and their size is stable across sca
 
 Diagnostics are disabled by default. When enabled, diagnostics are redacted and stored in a bounded WordPress option.
 
+= Can this detect a server cron? =
+
+It records runtime evidence. A scheduled scan run from WP-CLI is shown as likely server-cron configured; HTTP WP-Cron is shown separately because WordPress cannot reliably tell whether that trigger came from visitor traffic, a server cron curl, or an external monitor.
+
 = How are failed upload emails delivered? =
 
 Failure emails are disabled by default and use WordPress mail, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and avoid tokens, signed URLs, raw request bodies, file contents, stack traces, and absolute server paths.
 
 = Does this expose custom developer hooks? =
 
-No public custom actions or filters are exposed in version 0.2.0.
+No public custom actions or filters are exposed in version 0.3.0.
 
 == Changelog ==
 
 = Unreleased =
+
+= 0.3.0 =
+* Added cron health tracking for scheduled scans, including last runner evidence, WP-CLI scan evidence, WP-Cron disabled status, and server-cron health guidance.
+* Added a Server Cron Expected setting for reminders when automatic scans should be driven by WP-CLI but no WP-CLI scheduled scan has been observed.
+
+= 0.2.1 =
+* Added a Scan State section with current UTC time, automatic scan status, next scheduled scan timing, last completed scan, and minimum file age in seconds.
+* Displayed Recent Events timestamps in explicit UTC format and added a current UTC time reference above the events table.
 
 = 0.2.0 =
 * Added a configurable multipart chunk size setting for Drime uploads.
@@ -68,6 +80,12 @@ No public custom actions or filters are exposed in version 0.2.0.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.3.0 =
+Adds cron-health evidence and server-cron expectation reminders for automatic scan reliability. No breaking changes.
+
+= 0.2.1 =
+Adds clearer UTC scan timing and Recent Events context for backup monitoring. No breaking changes.
 
 = 0.2.0 =
 Adds Drime backup controls, failed-upload email notifications, and admin UI clarity improvements. No breaking changes.

@@ -85,6 +85,8 @@ trait Alynt_Drime_WPvivid_Uploader_Plugin_Admin_Actions {
 
 		$this->verify_admin_action( 'alynt_drime_wpvivid_scan_now' );
 
+		$this->cron_health->record_manual_scan();
+
 		$result = $this->scan_and_queue();
 
 		if ( ! empty( $result['errors'] ) ) {

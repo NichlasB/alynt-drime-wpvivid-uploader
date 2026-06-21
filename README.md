@@ -14,6 +14,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
 - Provides manual remote-retention preview and cleanup for plugin-owned Drime uploads, moving eligible remote files to Drime trash only.
 - Sends optional plain-text failed upload notifications through WordPress mail with duplicate suppression.
+- Tracks scheduled-scan cron health so administrators can see whether scans have run from WP-CLI or only from HTTP WP-Cron.
 - Stores bounded, redacted diagnostics when diagnostics are explicitly enabled.
 - Keeps local backups after upload by default; deletion requires explicit opt-in.
 
@@ -46,6 +47,7 @@ The settings screen controls:
 - Optional WPvivid backup path override.
 - Duplicate handling mode: skip existing files or rename new uploads.
 - Automatic WP-Cron scanning.
+- Optional server-cron expectation reminders for WP-CLI-driven scheduled scans.
 - Minimum file age before queueing.
 - Multipart chunk size for large Drime uploads.
 - Optional local deletion after confirmed upload.
@@ -61,6 +63,10 @@ See [docs/SETTINGS.md](docs/SETTINGS.md) for the full option schema.
 Diagnostics are disabled by default. When enabled, the plugin stores a bounded event log in WordPress options and exposes a health summary, recent events table, JSON export, and clear action to administrators.
 
 Diagnostics redact bearer tokens, authorization headers, cookies, nonces, passwords, request bodies, presigned URLs, and HTTP URLs embedded in scalar values.
+
+## Cron Health
+
+The Scan State panel shows the current UTC time, the next automated scan, the last scheduled scan, the last detected scan runner, whether `DISABLE_WP_CRON` is active, and a server-cron health summary. The plugin records runtime evidence from WordPress; it does not read server cron files such as `/etc/cron.d/wp-cron-sites`.
 
 ## Frequently Asked Questions
 
@@ -82,7 +88,7 @@ The scanner waits until files are old enough and their size is stable across sca
 
 ### Does this expose developer hooks?
 
-No public custom actions or filters are exposed in `0.2.0`. See [docs/HOOKS.md](docs/HOOKS.md).
+No public custom actions or filters are exposed in `0.3.0`. See [docs/HOOKS.md](docs/HOOKS.md).
 
 ## Changelog
 

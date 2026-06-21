@@ -55,6 +55,16 @@
 	margin: 12px 0 20px;
 }
 
+.alynt-drime-wpvivid-scan-state {
+	max-width: 760px;
+	margin: 12px 0 6px;
+}
+
+.alynt-drime-wpvivid-time-reference {
+	font-weight: 600;
+	margin: 8px 0;
+}
+
 .alynt-drime-wpvivid-active-upload {
 	max-width: 760px;
 	margin: 12px 0;
@@ -72,5 +82,9 @@
 }
 
 .alynt-drime-wpvivid-health th {
+	width: 220px;
+}
+
+.alynt-drime-wpvivid-scan-state th {
 	width: 220px;
 }

@@ -117,6 +117,13 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	private $retention;
 
 	/**
+	 * Cron health.
+	 *
+	 * @var Alynt_Drime_WPvivid_Uploader_Cron_Health
+	 */
+	private $cron_health;
+
+	/**
 
 	 * Admin page.
 	 *
@@ -154,6 +161,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 		$this->cron = new Alynt_Drime_WPvivid_Uploader_Cron( $this );
 
 		$this->retention = new Alynt_Drime_WPvivid_Uploader_Remote_Retention( $this->settings, $this->client, $this->registry, $this->logger );
+
+		$this->cron_health = new Alynt_Drime_WPvivid_Uploader_Cron_Health();
 
 		$this->admin_page = new Alynt_Drime_WPvivid_Uploader_Admin_Page( $this );
 
@@ -351,5 +360,17 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 	public function retention() {
 
 		return $this->retention;
+	}
+
+	/**
+	 * Cron health getter.
+	 *
+	 * @return Alynt_Drime_WPvivid_Uploader_Cron_Health
+	 *
+	 * @since 0.3.0
+	 */
+	public function cron_health() {
+
+		return $this->cron_health;
 	}
 }

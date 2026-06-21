@@ -162,6 +162,14 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 		?>
 		<h3><?php esc_html_e( 'Recent Events', 'alynt-drime-wpvivid-uploader' ); ?></h3>
 		<?php
+		$current_utc_time_reference = sprintf(
+			/* translators: %s: Current UTC time. */
+			__( 'Current UTC time: %s', 'alynt-drime-wpvivid-uploader' ),
+			$this->format_utc_time( time() )
+		);
+		?>
+		<p class="alynt-drime-wpvivid-time-reference"><?php echo esc_html( $current_utc_time_reference ); ?></p>
+		<?php
 		if ( empty( $events ) ) {
 			$this->render_empty_events();
 			return;
@@ -208,7 +216,7 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 				<?php foreach ( $events as $index => $event ) : ?>
 					<tr>
 						<th scope="row"><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></th>
-						<td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', isset( $event['time'] ) ? (int) $event['time'] : time() ) ); ?></td>
+						<td><?php echo esc_html( $this->format_utc_time( isset( $event['time'] ) ? (int) $event['time'] : time() ) ); ?></td>
 						<td><?php echo esc_html( isset( $event['level'] ) ? (string) $event['level'] : '' ); ?></td>
 						<td><?php echo esc_html( isset( $event['category'] ) ? (string) $event['category'] : '' ); ?></td>
 						<td><?php echo esc_html( isset( $event['code'] ) ? (string) $event['code'] : '' ); ?></td>
@@ -248,6 +256,16 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Status {
 			</button>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Formats a timestamp as UTC.
+	 *
+	 * @param int $timestamp Timestamp.
+	 * @return string
+	 */
+	private function format_utc_time( $timestamp ) {
+		return gmdate( 'Y-m-d H:i:s \U\T\C', absint( $timestamp ) );
 	}
 
 	/**

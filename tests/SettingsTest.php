@@ -121,6 +121,22 @@ class SettingsTest extends TestCase {
 		$this->assertSame( "admin@example.test\nops@example.test", $saved['failure_email_recipients'] );
 	}
 
+	public function test_server_cron_expected_is_sanitized_as_boolean() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		$enabled = $settings->update(
+			array(
+				'server_cron_expected' => '1',
+			)
+		);
+
+		$disabled = $settings->update( array() );
+
+		$this->assertTrue( $enabled['server_cron_expected'] );
+		$this->assertFalse( $disabled['server_cron_expected'] );
+	}
+
 	/**
 	 * Creates settings with mocked option storage.
 	 *

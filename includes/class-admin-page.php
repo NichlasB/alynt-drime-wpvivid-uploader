@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Notices;
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings;
+	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Cron_Health;
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Status;
 
 	/**
@@ -105,6 +106,7 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 		$retention     = $this->plugin->retention()->preview();
 		$events        = $this->plugin->logger()->get_events();
 		$diagnostics   = $this->plugin->logger()->stats();
+		$cron_health   = $this->plugin->cron_health();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Notice rendering is read-only.
 		$notice = isset( $_GET['alynt_notice'] ) ? sanitize_key( wp_unslash( $_GET['alynt_notice'] ) ) : '';
 
@@ -112,11 +114,13 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 		<div class="wrap alynt-drime-wpvivid">
 			<h1><?php esc_html_e( 'Drime WPvivid Uploader', 'alynt-drime-wpvivid-uploader' ); ?></h1>
 			<?php $this->render_notice( $notice ); ?>
+			<?php $this->render_cron_health_notice( $settings, $cron_health ); ?>
 			<hr class="wp-header-end">
 			<?php
 			$this->render_settings_form( $settings, $detected_path );
 			$this->render_manual_actions();
 			$this->render_status_summary( $queue, $uploaded, $failed );
+			$this->render_scan_state( $settings, $events, $cron_health );
 			$this->render_active_upload_state( $active );
 			$this->render_remote_retention_status( $settings, $retention );
 			$this->render_diagnostics_panel( $settings, $diagnostics );

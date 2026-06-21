@@ -2,7 +2,7 @@
 
 ## Public Custom Hooks
 
-Version `0.2.0` does not expose public custom actions or filters.
+Version `0.3.0` does not expose public custom actions or filters.
 
 The plugin currently integrates with WordPress through core hooks only. Public extension hooks should be added deliberately when there is a stable use case and a documented backward-compatibility contract.
 

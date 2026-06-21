@@ -148,6 +148,13 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 			<td><label><input id="alynt-auto-scan" name="alynt_drime_wpvivid_settings[auto_scan_enabled]" type="checkbox" value="1" <?php checked( ! empty( $settings['auto_scan_enabled'] ) ); ?>> <?php esc_html_e( 'Scan with WP-Cron every 15 minutes.', 'alynt-drime-wpvivid-uploader' ); ?></label></td>
 		</tr>
 		<tr>
+			<th scope="row"><label for="alynt-server-cron-expected"><?php esc_html_e( 'Server Cron Expected', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
+			<td>
+				<label><input id="alynt-server-cron-expected" name="alynt_drime_wpvivid_settings[server_cron_expected]" type="checkbox" value="1" <?php checked( ! empty( $settings['server_cron_expected'] ) ); ?> aria-describedby="alynt-server-cron-expected-description"> <?php esc_html_e( 'Remind me if scheduled scans have not been observed from WP-CLI.', 'alynt-drime-wpvivid-uploader' ); ?></label>
+				<p id="alynt-server-cron-expected-description" class="description"><?php esc_html_e( 'Use this when the site should be driven by a server cron job instead of visitor traffic. The plugin records runtime evidence; it does not read server cron files.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+			</td>
+		</tr>
+		<tr>
 			<th scope="row"><label for="alynt-min-file-age"><?php esc_html_e( 'Minimum File Age', 'alynt-drime-wpvivid-uploader' ); ?></label></th>
 			<td>
 				<input id="alynt-min-file-age" name="alynt_drime_wpvivid_settings[min_file_age_seconds]" type="number" min="60" step="60" value="<?php echo esc_attr( (string) $settings['min_file_age_seconds'] ); ?>" aria-describedby="alynt-min-file-age-description">

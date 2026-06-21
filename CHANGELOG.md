@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-21
+
+### Added
+
+- Added cron health tracking for scheduled scans, including last runner evidence, WP-CLI scan evidence, WP-Cron disabled status, and server-cron health guidance.
+- Added a Server Cron Expected setting that warns administrators when automatic scans should be driven by WP-CLI but no WP-CLI scheduled scan has been observed.
+
+## [0.2.1] - 2026-06-21
+
+### Added
+
+- Added a dedicated Scan State section showing current UTC time, automatic scan status, next scheduled scan timing, last completed scan, and minimum file age in seconds.
+
+### Changed
+
+- Display Recent Events timestamps in explicit UTC format and add a current UTC time reference above the events table.
+
 ## [0.2.0] - 2026-06-21
 
 ### Added

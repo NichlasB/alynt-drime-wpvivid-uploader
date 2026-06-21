@@ -40,6 +40,7 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			'backup_path_override'      => '',
 			'duplicate_mode'            => 'skip',
 			'auto_scan_enabled'         => false,
+			'server_cron_expected'      => false,
 			'scan_interval'             => 'fifteen_minutes',
 			'min_file_age_seconds'      => 900,
 			'multipart_chunk_size_mb'   => self::DEFAULT_MULTIPART_CHUNK_SIZE_MB,
@@ -148,6 +149,7 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$settings['duplicate_mode'] = in_array( $duplicate_mode, array( 'skip', 'rename' ), true ) ? $duplicate_mode : 'skip';
 
 		$settings['auto_scan_enabled']         = ! empty( $raw['auto_scan_enabled'] );
+		$settings['server_cron_expected']      = ! empty( $raw['server_cron_expected'] );
 		$settings['scan_interval']             = 'fifteen_minutes';
 		$settings['min_file_age_seconds']      = isset( $raw['min_file_age_seconds'] ) ? max( 60, absint( $raw['min_file_age_seconds'] ) ) : 900;
 		$settings['multipart_chunk_size_mb']   = isset( $raw['multipart_chunk_size_mb'] ) ? max( self::MIN_MULTIPART_CHUNK_SIZE_MB, min( self::MAX_MULTIPART_CHUNK_SIZE_MB, absint( $raw['multipart_chunk_size_mb'] ) ) ) : self::DEFAULT_MULTIPART_CHUNK_SIZE_MB;
