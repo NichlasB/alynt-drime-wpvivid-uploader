@@ -182,6 +182,31 @@ class DrimeClientTest extends TestCase {
 		$this->assertSame( 42, $result['id'] );
 	}
 
+	public function test_list_workspaces_uses_me_workspaces_endpoint() {
+		Functions\when( 'get_option' )->alias(
+			function ( $name, $default = array() ) {
+				if ( Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME !== $name ) {
+					return $default;
+				}
+
+				return array(
+					'api_token' => 'test-token',
+				);
+			}
+		);
+
+		Functions\expect( 'wp_remote_request' )->once()->with(
+			Alynt_Drime_WPvivid_Uploader_Drime_Client::BASE_URL . '/me/workspaces',
+			\Mockery::type( 'array' )
+		)->andReturn( array( 'body' => '{"workspaces":[],"status":"success"}' ) );
+		Functions\expect( 'wp_remote_retrieve_response_code' )->once()->andReturn( 200 );
+		Functions\expect( 'wp_remote_retrieve_body' )->once()->andReturn( '{"workspaces":[],"status":"success"}' );
+
+		$client = new Alynt_Drime_WPvivid_Uploader_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+
+		$this->assertSame( array( 'workspaces' => array(), 'status' => 'success' ), $client->list_workspaces() );
+	}
+
 	public function test_list_folder_entries_uses_hash_pagination_and_search() {
 		Functions\when( 'get_option' )->alias(
 			function ( $name, $default = array() ) {

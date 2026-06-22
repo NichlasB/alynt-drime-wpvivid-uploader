@@ -1,6 +1,6 @@
 # Drime API Research
 
-Updated: 2026-06-21
+Updated: 2026-06-22
 
 Sources:
 
@@ -16,6 +16,7 @@ Sources:
 - https://docs.drime.cloud/api-reference/multipart/complete-multipart
 - https://docs.drime.cloud/api-reference/multipart/get-uploaded-parts
 - https://docs.drime.cloud/api-reference/users/get-logged-user
+- https://docs.drime.cloud/api-reference/user/get-workspaces
 - https://docs.drime.cloud/api-reference/folders/get-user-folders
 - https://docs.drime.cloud/api-reference/files/list-file-entries
 - https://docs.drime.cloud/api-reference/folders/get-folder-path
@@ -25,6 +26,7 @@ Sources:
 - Base API URL is `https://app.drime.cloud/api/v1`.
 - Requests use Bearer token authentication in the `Authorization` header.
 - Personal/default workspace uses `workspaceId=0`.
+- Workspace discovery uses `GET /me/workspaces` and returns the workspaces available to the authenticated token, including IDs, names, member counts, and current-user role data.
 - Direct upload endpoint is `POST /uploads` using `multipart/form-data`.
 - Direct upload accepts `file`, `workspaceId`, optional `parentId`, and optional `relativePath`.
 - Direct upload response should include `status` and `fileEntry`.
@@ -54,12 +56,16 @@ Sources:
 - S3 entry response should include `status` and `fileEntry`.
 - Folder browsing can use `GET /cli/loggedUser`, `GET /users/{userId}/folders?workspaceId=0`, `GET /drive/file-entries?workspaceId=0&type=folder&folderId={folderHash}`, and `GET /folders/{folderHash}/path`.
 - The folder browser stores non-secret display metadata only: numeric folder ID, folder hash, and display path. It does not expose bearer tokens in JavaScript or AJAX responses.
+- The workspace picker stores only the selected numeric `workspace_id`; AJAX responses expose sanitized workspace IDs, names, member counts, and role labels, not tokens or raw account payloads.
 
 ## Code Updates Made
 
 - Direct small-file uploads now pass `relativePath` only for legacy relative-path settings without a selected base folder.
 - Selected-base uploads now resolve or create the final relative-path folder during upload and then target that concrete parent folder ID for direct and multipart uploads. Live E2E showed Drime direct upload does not reliably honor `relativePath` alongside `parentId`.
 - The Drime client now includes read-only folder browser methods for logged-user lookup, user-folder listing, child folder listing, and folder breadcrumb lookup.
+- The Drime client now includes a read-only workspace listing method for `GET /me/workspaces`.
+- The admin settings screen can load workspaces into a native selector while preserving manual workspace ID entry.
+- Changing the configured workspace clears selected base-folder metadata so a folder ID from another workspace is not reused accidentally.
 - Destination preview is read-only and reports existing or missing relative-path segments without creating folders or uploading backup bytes.
 - The Drime client now treats non-empty, non-JSON responses as malformed.
 - Duplicate validation now requires a `duplicates` array.

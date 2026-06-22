@@ -134,6 +134,7 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 			$settings['api_token'] = sanitize_text_field( $incoming_token );
 		}
 
+		$current_workspace_id     = isset( $current['workspace_id'] ) ? absint( $current['workspace_id'] ) : 0;
 		$settings['workspace_id'] = isset( $raw['workspace_id'] ) ? max( 0, absint( $raw['workspace_id'] ) ) : 0;
 
 		if ( isset( $raw['parent_folder_id'] ) ) {
@@ -144,6 +145,12 @@ class Alynt_Drime_WPvivid_Uploader_Settings {
 		$settings['parent_folder_hash']         = isset( $raw['parent_folder_hash'] ) ? $this->sanitize_folder_hash( (string) wp_unslash( $raw['parent_folder_hash'] ) ) : '';
 		$settings['parent_folder_display_path'] = isset( $raw['parent_folder_display_path'] ) ? $this->sanitize_display_path( (string) wp_unslash( $raw['parent_folder_display_path'] ) ) : '';
 		if ( '' === $settings['parent_folder_id'] ) {
+			$settings['parent_folder_hash']         = '';
+			$settings['parent_folder_display_path'] = '';
+		}
+
+		if ( $settings['workspace_id'] !== $current_workspace_id ) {
+			$settings['parent_folder_id']           = '';
 			$settings['parent_folder_hash']         = '';
 			$settings['parent_folder_display_path'] = '';
 		}

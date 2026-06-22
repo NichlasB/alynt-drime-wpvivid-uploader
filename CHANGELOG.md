@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-22
+
+### Added
+
+- Added a read-only Drime workspace picker on the settings screen for loading workspaces available to the saved API token.
+
+### Changed
+
+- Changing the selected workspace now clears selected base-folder metadata so stale folder IDs are not reused across workspaces.
+- Refined settings input widths and status table widths for a cleaner admin layout.
+
 ## [0.4.0] - 2026-06-22
 
 ### Added

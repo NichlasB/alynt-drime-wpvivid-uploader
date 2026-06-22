@@ -164,6 +164,32 @@ class SettingsTest extends TestCase {
 		$this->assertSame( '', $cleared['parent_folder_display_path'] );
 	}
 
+	public function test_workspace_change_clears_saved_parent_folder_selection() {
+		$options  = array(
+			Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME => array(
+				'workspace_id'                => 0,
+				'parent_folder_id'            => '123',
+				'parent_folder_hash'          => 'hash-123',
+				'parent_folder_display_path'  => 'General/Files/Backups',
+			),
+		);
+		$settings = $this->settings_with_options( $options );
+
+		$saved = $settings->update(
+			array(
+				'workspace_id'                => 1873,
+				'parent_folder_id'            => '123',
+				'parent_folder_hash'          => 'hash-123',
+				'parent_folder_display_path'  => 'General/Files/Backups',
+			)
+		);
+
+		$this->assertSame( 1873, $saved['workspace_id'] );
+		$this->assertSame( '', $saved['parent_folder_id'] );
+		$this->assertSame( '', $saved['parent_folder_hash'] );
+		$this->assertSame( '', $saved['parent_folder_display_path'] );
+	}
+
 	/**
 	 * Creates settings with mocked option storage.
 	 *

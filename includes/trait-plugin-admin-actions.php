@@ -276,6 +276,26 @@ trait Alynt_Drime_WPvivid_Uploader_Plugin_Admin_Actions {
 	}
 
 	/**
+	 * Lists Drime workspaces for the admin workspace selector.
+	 *
+	 * @return void
+	 *
+	 * @since 0.5.0
+	 */
+	public function handle_ajax_list_workspaces() {
+
+		$this->verify_ajax_action();
+
+		$result = $this->workspace_browser->list_workspaces();
+
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+		}
+
+		wp_send_json_success( $result );
+	}
+
+	/**
 	 * Previews the resolved Drime upload destination.
 	 *
 	 * @return void

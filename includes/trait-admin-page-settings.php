@@ -58,6 +58,16 @@ trait Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings {
 				<td>
 					<input id="alynt-workspace-id" name="alynt_drime_wpvivid_settings[workspace_id]" type="number" min="0" value="<?php echo esc_attr( (string) $settings['workspace_id'] ); ?>" aria-describedby="alynt-workspace-id-description">
 					<p id="alynt-workspace-id-description" class="description"><?php esc_html_e( 'Use 0 for your personal/default Drime workspace.', 'alynt-drime-wpvivid-uploader' ); ?></p>
+					<div class="alynt-drime-workspace-tools" data-alynt-workspace-browser>
+						<button type="button" class="button" data-alynt-workspaces-load><?php esc_html_e( 'Load Drime Workspaces', 'alynt-drime-wpvivid-uploader' ); ?></button>
+						<span class="spinner" data-alynt-workspace-spinner></span>
+						<label class="screen-reader-text" for="alynt-workspace-select"><?php esc_html_e( 'Choose Drime workspace', 'alynt-drime-wpvivid-uploader' ); ?></label>
+						<select id="alynt-workspace-select" data-alynt-workspace-select hidden>
+							<?php /* translators: %d: saved Drime workspace ID. */ ?>
+							<option value="<?php echo esc_attr( (string) absint( $settings['workspace_id'] ) ); ?>"><?php echo esc_html( 0 === absint( $settings['workspace_id'] ) ? __( 'Personal/default workspace', 'alynt-drime-wpvivid-uploader' ) : sprintf( __( 'Workspace ID %d', 'alynt-drime-wpvivid-uploader' ), absint( $settings['workspace_id'] ) ) ); ?></option>
+						</select>
+						<div class="alynt-drime-workspace-status" aria-live="polite" data-alynt-workspace-status></div>
+					</div>
 				</td>
 			</tr>
 			<tr>

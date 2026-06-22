@@ -84,6 +84,14 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 			true
 		);
 
+		wp_enqueue_script(
+			'alynt-drime-wpvivid-uploader-workspaces',
+			ALYNT_DRIME_WPVIVID_UPLOADER_URL . 'assets/admin-workspaces.js',
+			array( 'alynt-drime-wpvivid-uploader-admin' ),
+			ALYNT_DRIME_WPVIVID_UPLOADER_VERSION,
+			true
+		);
+
 		wp_localize_script(
 			'alynt-drime-wpvivid-uploader-admin',
 			'alyntDrimeWPvivid',
@@ -91,17 +99,27 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'alynt_drime_wpvivid_folder_browser' ),
 				'i18n'    => array(
-					'loading'        => __( 'Loading...', 'alynt-drime-wpvivid-uploader' ),
-					'previewing'     => __( 'Previewing...', 'alynt-drime-wpvivid-uploader' ),
-					'loadFailed'     => __( 'Could not load Drime folders.', 'alynt-drime-wpvivid-uploader' ),
-					'previewFailed'  => __( 'Could not preview the Drime destination.', 'alynt-drime-wpvivid-uploader' ),
-					'noFolders'      => __( 'No folders found.', 'alynt-drime-wpvivid-uploader' ),
-					'noFoldersHint'  => __( 'Folders matching this view will appear here.', 'alynt-drime-wpvivid-uploader' ),
-					'selectedPrefix' => __( 'Selected base folder:', 'alynt-drime-wpvivid-uploader' ),
-					'exists'         => __( 'Destination exists:', 'alynt-drime-wpvivid-uploader' ),
-					'missing'        => __( 'Missing folders:', 'alynt-drime-wpvivid-uploader' ),
-					'open'           => __( 'Open', 'alynt-drime-wpvivid-uploader' ),
-					'useBase'        => __( 'Use as Base Folder', 'alynt-drime-wpvivid-uploader' ),
+					'loading'                 => __( 'Loading...', 'alynt-drime-wpvivid-uploader' ),
+					'previewing'              => __( 'Previewing...', 'alynt-drime-wpvivid-uploader' ),
+					'loadFailed'              => __( 'Could not load Drime folders.', 'alynt-drime-wpvivid-uploader' ),
+					'workspacesLoadFailed'    => __( 'Could not load Drime workspaces.', 'alynt-drime-wpvivid-uploader' ),
+					'noWorkspaces'            => __( 'No team workspaces found. The personal/default workspace remains available.', 'alynt-drime-wpvivid-uploader' ),
+					'workspacesLoaded'        => __( 'Workspaces loaded. Choose one, then save settings.', 'alynt-drime-wpvivid-uploader' ),
+					'personalWorkspace'       => __( 'Personal/default workspace', 'alynt-drime-wpvivid-uploader' ),
+					'workspaceIdPrefix'       => __( 'Workspace ID', 'alynt-drime-wpvivid-uploader' ),
+					'workspaceSelectedPrefix' => __( 'Selected workspace:', 'alynt-drime-wpvivid-uploader' ),
+					'workspaceMemberSingular' => __( '1 member', 'alynt-drime-wpvivid-uploader' ),
+					/* translators: %d: workspace member count. */
+					'workspaceMembers'        => __( '%d members', 'alynt-drime-wpvivid-uploader' ),
+					'selectedRootFolder'      => __( 'Selected base folder: Drime root or manually entered folder ID.', 'alynt-drime-wpvivid-uploader' ),
+					'previewFailed'           => __( 'Could not preview the Drime destination.', 'alynt-drime-wpvivid-uploader' ),
+					'noFolders'               => __( 'No folders found.', 'alynt-drime-wpvivid-uploader' ),
+					'noFoldersHint'           => __( 'Folders matching this view will appear here.', 'alynt-drime-wpvivid-uploader' ),
+					'selectedPrefix'          => __( 'Selected base folder:', 'alynt-drime-wpvivid-uploader' ),
+					'exists'                  => __( 'Destination exists:', 'alynt-drime-wpvivid-uploader' ),
+					'missing'                 => __( 'Missing folders:', 'alynt-drime-wpvivid-uploader' ),
+					'open'                    => __( 'Open', 'alynt-drime-wpvivid-uploader' ),
+					'useBase'                 => __( 'Use as Base Folder', 'alynt-drime-wpvivid-uploader' ),
 				),
 			)
 		);

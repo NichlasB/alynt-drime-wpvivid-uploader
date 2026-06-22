@@ -379,6 +379,54 @@ Implementation decisions:
 - The first version includes read-only preview only; there is no manual `Create Missing Folders` action.
 - LocalWP/Drime E2E showed direct uploads do not reliably honor `relativePath` alongside `parentId`; upload processing now resolves or creates the final concrete destination folder when needed, then uploads to that folder ID.
 
+### Feature Slice: Drime Workspace Picker
+
+Status: implemented in source. Feature-stage review, documentation sync, and release verification are pending for this slice.
+
+Goal:
+
+- Let administrators retrieve and select a Drime workspace from the plugin settings screen instead of manually typing workspace IDs.
+- Keep `workspace_id` as the canonical stored setting and keep `0` as the personal/default Drime workspace.
+- Keep workspace browsing read-only. Loading workspaces must not create folders, change Drime account state, or expose the saved bearer token.
+- Clear selected base-folder metadata when the workspace changes so a folder ID from one workspace is not accidentally reused in another workspace.
+
+Verified API reference:
+
+- `GET /me/workspaces` returns all workspaces available to the authenticated token.
+- The API response includes a `workspaces` array with fields such as `id`, `name`, `members_count`, `currentUser.role_name`, and owner/current-user flags.
+- Drime's workspace context rule remains: use `workspaceId=0` for the personal/default workspace and a specific workspace ID for team workspaces.
+
+Implementation plan:
+
+- Add a Drime client method:
+  - `list_workspaces()`.
+- Add a workspace browser service that normalizes the Drime response into sanitized, non-secret rows for the admin UI.
+- Add a `wp_ajax_` admin action:
+  - `alynt_drime_wpvivid_list_workspaces`.
+  - Gate with `manage_options`.
+  - Verify the existing folder-browser/admin nonce.
+  - Return sanitized JSON only; never return the token, raw account payload, or sensitive account details.
+- Add a WordPress-native settings UI:
+  - Keep the manual numeric `Workspace ID` field for advanced/manual fallback.
+  - Add `Load Drime Workspaces`.
+  - Populate a native `<select>` with the personal/default workspace and returned team workspaces.
+  - Selecting a workspace updates `workspace_id`, clears selected base-folder metadata, and tells the user to save settings.
+- Add tests:
+  - client endpoint coverage for `/me/workspaces`.
+  - response normalization coverage.
+  - settings coverage that changing workspaces clears stale parent-folder metadata.
+
+Release workflow after successful implementation and E2E:
+
+- Run the applicable feature-stage prompts in this order:
+  - `FEATURE_LIGHT_REVIEW_PROMPT.md`.
+  - `FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md`.
+  - `FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md`.
+  - `FEATURE_SECURITY_REVIEW_PROMPT.md`.
+  - `DOCUMENTATION_SYNC_AUDIT_PROMPT.md`.
+- Run `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds5-git\GIT_OPERATIONS_PROMPT.md` Option C.
+- Follow the mandatory release approval checkpoint before commit/tag/push/GitHub release publishing.
+
 ### 7. Admin UX Pass
 
 Run the UI workflow after the core feature paths are stable:

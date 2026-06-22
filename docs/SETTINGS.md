@@ -7,10 +7,10 @@ Option name: `alynt_drime_wpvivid_settings`
 | Option Key | Type | Default | Sanitization | UI Area | Description |
 | --- | --- | --- | --- | --- | --- |
 | `api_token` | string | `''` | `sanitize_text_field`; masked value preserves existing token | Drime | Drime bearer token used for API requests. Stored with autoload disabled. |
-| `workspace_id` | integer | `0` | `absint`, minimum `0` | Drime | Drime workspace ID. `0` means the personal/default workspace. |
-| `parent_folder_id` | string | `''` | empty string or `absint` string | Drime | Optional concrete Drime base folder ID, either manually entered or selected through the folder browser. |
-| `parent_folder_hash` | string | `''` | alphanumeric, underscore, and hyphen only; cleared when `parent_folder_id` is empty | Drime | Optional non-secret Drime folder hash used for browsing children and previewing destinations. |
-| `parent_folder_display_path` | string | `''` | `sanitize_text_field`, slash normalization; cleared when `parent_folder_id` is empty | Drime | Optional non-secret display breadcrumb for the selected base folder. |
+| `workspace_id` | integer | `0` | `absint`, minimum `0`; changing it clears selected base-folder metadata | Drime | Drime workspace ID. `0` means the personal/default workspace. The workspace picker can populate this value from `GET /me/workspaces`. |
+| `parent_folder_id` | string | `''` | empty string or `absint` string; cleared when workspace changes | Drime | Optional concrete Drime base folder ID, either manually entered or selected through the folder browser. |
+| `parent_folder_hash` | string | `''` | alphanumeric, underscore, and hyphen only; cleared when `parent_folder_id` is empty or workspace changes | Drime | Optional non-secret Drime folder hash used for browsing children and previewing destinations. |
+| `parent_folder_display_path` | string | `''` | `sanitize_text_field`, slash normalization; cleared when `parent_folder_id` is empty or workspace changes | Drime | Optional non-secret display breadcrumb for the selected base folder. |
 | `relative_path` | string | `''` | `sanitize_text_field`, slash normalization, rejects `..` | Drime | Optional subpath under the selected base folder. Missing folders may be created only by the upload path when needed. |
 | `backup_path_override` | string | `''` | `sanitize_text_field` | WPvivid Source | Optional local WPvivid backup path override. |
 | `duplicate_mode` | string | `skip` | `sanitize_key`, allowlist `skip` or `rename` | Behavior | Controls whether existing Drime filenames are skipped or renamed. |

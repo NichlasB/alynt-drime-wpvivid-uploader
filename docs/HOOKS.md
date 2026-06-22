@@ -2,7 +2,7 @@
 
 ## Public Custom Hooks
 
-Version `0.3.0` does not expose public custom actions or filters.
+The plugin does not expose public custom actions or filters.
 
 The plugin currently integrates with WordPress through core hooks only. Public extension hooks should be added deliberately when there is a stable use case and a documented backward-compatibility contract.
 
@@ -25,6 +25,7 @@ The plugin currently integrates with WordPress through core hooks only. Public e
 | `admin_post_alynt_drime_wpvivid_clear_active_upload` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_clear_active_upload()` | Clears active upload state and aborts the remote multipart upload when possible. |
 | `admin_post_alynt_drime_wpvivid_export_diagnostics` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_export_diagnostics()` | Exports redacted diagnostics as JSON. |
 | `admin_post_alynt_drime_wpvivid_clear_diagnostics` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_clear_diagnostics()` | Clears stored diagnostics events. |
+| `wp_ajax_alynt_drime_wpvivid_list_workspaces` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_ajax_list_workspaces()` | Lists Drime workspaces for the read-only admin workspace selector. |
 | `wp_ajax_alynt_drime_wpvivid_list_folders` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_ajax_list_folders()` | Lists Drime folders for the read-only admin folder browser. |
 | `wp_ajax_alynt_drime_wpvivid_preview_destination` | action | `Alynt_Drime_WPvivid_Uploader_Plugin::handle_ajax_preview_destination()` | Previews the selected base folder plus relative subpath without creating folders. |
 | `cron_schedules` | filter | `Alynt_Drime_WPvivid_Uploader_Cron::add_schedules()` | Adds the internal fifteen-minute scan interval. |

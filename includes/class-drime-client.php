@@ -89,6 +89,17 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 	}
 
 	/**
+	 * Lists workspaces available to the authenticated Drime user.
+	 *
+	 * @return array<string,mixed>|WP_Error
+	 *
+	 * @since 0.5.0
+	 */
+	public function list_workspaces() {
+		return $this->request( 'GET', '/me/workspaces' );
+	}
+
+	/**
 	 * Lists folders for the authenticated Drime user.
 	 *
 	 * @param int $workspace_id Workspace ID.

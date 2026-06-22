@@ -9,7 +9,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Handles WPvivid-listed split archives such as `.part001.zip` and `.part002.zip` as complete sets.
 - Queues uploads, tracks attempts, enforces retry limits, and prevents duplicate queue entries.
 - Uploads small files through Drime direct upload and larger files through resumable multipart upload.
-- Lets administrators browse existing Drime folders and preview the resolved upload destination before backups run.
+- Lets administrators load Drime workspaces, browse existing Drime folders, and preview the resolved upload destination before backups run.
 - Caches resolved Drime parent folder IDs so remote duplicate checks work after relative-path uploads.
 - Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
 - Provides manual admin actions for connection testing, scanning, upload, diagnostics export, diagnostics clearing, and active-upload recovery.
@@ -44,7 +44,7 @@ The plugin includes `GitHub Plugin URI: NichlasB/alynt-drime-wpvivid-uploader` f
 
 The settings screen controls:
 
-- Drime API token, workspace ID, selected or manually entered parent folder ID, and optional relative subpath.
+- Drime API token, workspace ID with optional workspace picker, selected or manually entered parent folder ID, and optional relative subpath.
 - Optional WPvivid backup path override.
 - Duplicate handling mode: skip existing files or rename new uploads.
 - Automatic WP-Cron scanning.
@@ -87,13 +87,17 @@ Failure emails are disabled by default and use WordPress `wp_mail()`, so the act
 
 Select an existing Drime base folder, then enter the site folder or subpath in **Relative Path**. For example, selecting `General/Files/Backups` and entering `site1.com` resolves uploads to `General/Files/Backups/site1.com`. Browsing and previewing are read-only; missing subfolders are created only when an upload needs them.
 
+### How does workspace selection work?
+
+Use **Load Drime Workspaces** to retrieve workspaces available to the saved API token. Choosing a workspace updates the numeric **Workspace ID** field and clears the selected base folder so folders from another workspace are not reused accidentally. Save settings after choosing a workspace.
+
 ### Does this upload incomplete WPvivid files?
 
 The scanner waits until files are old enough and their size is stable across scans. WPvivid-listed split sets are queued only when every listed part is present and stable.
 
 ### Does this expose developer hooks?
 
-No public custom actions or filters are exposed in `0.3.0`. See [docs/HOOKS.md](docs/HOOKS.md).
+No public custom actions or filters are exposed. See [docs/HOOKS.md](docs/HOOKS.md).
 
 ## Changelog
 

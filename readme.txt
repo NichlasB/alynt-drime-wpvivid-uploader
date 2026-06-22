@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,7 +14,7 @@ Upload completed WPvivid local backup archives to Drime.
 
 Alynt Drime WPvivid Uploader is a companion plugin that scans completed local WPvivid backup archives, queues stable backup files, and uploads them to Drime.
 
-The plugin includes Drime destination settings with folder browsing and read-only destination preview, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, scheduled-scan cron health tracking, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
+The plugin includes Drime destination settings with workspace selection, folder browsing and read-only destination preview, WPvivid path detection, direct and configurable multipart upload support, duplicate handling, retry tracking, active-upload recovery, manual remote-retention cleanup, optional failed-upload email notifications, scheduled-scan cron health tracking, and optional redacted diagnostics for support. Local deletion, remote retention, and failure emails are disabled by default.
 
 == Installation ==
 
@@ -54,13 +54,22 @@ Failure emails are disabled by default and use WordPress mail, so the active sit
 
 Select an existing Drime base folder, then enter the site folder or subpath in Relative Path. Browsing and previewing are read-only; missing subfolders are created only when an upload needs them.
 
+= How does workspace selection work? =
+
+Load Drime Workspaces retrieves the workspaces available to the saved API token. Choosing a workspace updates Workspace ID and clears the selected base folder so folders from another workspace are not reused accidentally. Save settings after choosing a workspace.
+
 = Does this expose custom developer hooks? =
 
-No public custom actions or filters are exposed in version 0.3.0.
+No public custom actions or filters are exposed.
 
 == Changelog ==
 
 = Unreleased =
+
+= 0.5.0 =
+* Added a read-only Drime workspace picker for loading workspaces available to the saved API token.
+* Changed workspace changes to clear selected base-folder metadata so stale folder IDs are not reused across workspaces.
+* Refined settings input widths and status table widths for a cleaner admin layout.
 
 = 0.4.0 =
 * Added a read-only Drime folder browser and destination preview for selecting an existing base folder and checking the resolved upload path.
@@ -88,6 +97,9 @@ No public custom actions or filters are exposed in version 0.3.0.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.5.0 =
+Adds Drime workspace selection from the settings screen. No breaking changes.
 
 = 0.4.0 =
 Adds Drime folder browsing and read-only destination preview for safer backup destination setup. No breaking changes.
