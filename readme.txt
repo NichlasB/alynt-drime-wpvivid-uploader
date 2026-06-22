@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,11 @@ No public custom actions or filters are exposed.
 
 = Unreleased =
 
+= 0.5.1 =
+* Added a Failed Uploads table with per-file retry actions for readable local backup files.
+* Increased Drime API control-request timeout for slower multipart preflight/signing responses.
+* Changed local deletion for WPvivid-listed split backup sets so cleanup waits until every listed part is uploaded.
+
 = 0.5.0 =
 * Added a read-only Drime workspace picker for loading workspaces available to the saved API token.
 * Changed workspace changes to clear selected base-folder metadata so stale folder IDs are not reused across workspaces.
@@ -97,6 +102,9 @@ No public custom actions or filters are exposed.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.5.1 =
+Improves large multipart upload resilience and failed-upload recovery. No breaking changes.
 
 = 0.5.0 =
 Adds Drime workspace selection from the settings screen. No breaking changes.

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-06-22
+
+### Added
+
+- Added a failed uploads table with per-file retry actions when failed files still exist locally.
+
+### Changed
+
+- Increased Drime API control-request timeout to 180 seconds to better tolerate slow multipart signing and preflight responses.
+- Local deletion for WPvivid-listed split backup sets now waits until every listed part has uploaded successfully, then cleans up the completed set together.
+
 ## [0.5.0] - 2026-06-22
 
 ### Added

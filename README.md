@@ -9,6 +9,7 @@ Companion WordPress plugin that scans completed local WPvivid backup archives an
 - Handles WPvivid-listed split archives such as `.part001.zip` and `.part002.zip` as complete sets.
 - Queues uploads, tracks attempts, enforces retry limits, and prevents duplicate queue entries.
 - Uploads small files through Drime direct upload and larger files through resumable multipart upload.
+- Shows failed uploads with per-file retry actions when the local file is still readable.
 - Lets administrators load Drime workspaces, browse existing Drime folders, and preview the resolved upload destination before backups run.
 - Caches resolved Drime parent folder IDs so remote duplicate checks work after relative-path uploads.
 - Supports duplicate handling by skipping existing remote files or asking Drime for an available filename.
@@ -73,7 +74,7 @@ The Scan State panel shows the current UTC time, the next automated scan, the la
 
 ### Does this delete local WPvivid backups?
 
-No. Local deletion is disabled by default and only runs after a confirmed upload when the administrator enables **Delete Local Files**.
+No. Local deletion is disabled by default and only runs after confirmed upload when the administrator enables **Delete Local Files**. For WPvivid-listed split backup sets, the plugin waits until every listed part has uploaded successfully before deleting the local parts.
 
 ### Does this permanently delete Drime files?
 
@@ -82,6 +83,10 @@ No. Remote retention is disabled by default, runs only from manual admin actions
 ### How are failed upload emails delivered?
 
 Failure emails are disabled by default and use WordPress `wp_mail()`, so the active site mail stack or SMTP plugin handles delivery. Emails are plain text and include only safe operational details such as site URL, backup filename, sanitized reason, attempt count, timestamp, and the admin page URL.
+
+### Can a failed upload be retried?
+
+Yes. Failed uploads appear in the admin status area with a retry action when the failed registry still points to a readable local backup file. Retrying puts that file back at the front of the queue with attempts reset to zero.
 
 ### How do the Drime base folder and relative path work?
 

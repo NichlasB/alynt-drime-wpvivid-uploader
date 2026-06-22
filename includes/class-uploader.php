@@ -22,6 +22,7 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Session;
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts;
 	use Alynt_Drime_WPvivid_Uploader_Uploader_Retry_State;
+	use Alynt_Drime_WPvivid_Uploader_Uploader_WPvivid_Set_Cleanup;
 
 	const STALE_ACTIVE_UPLOAD_SECONDS = 6 * 60 * 60;
 	const UPLOAD_LOCK_OPTION          = 'alynt_drime_wpvivid_upload_lock';
@@ -144,7 +145,13 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 			return $this->state_persistence_error();
 		}
 
-		if ( ! $this->registry->mark_failed( (string) $item['signature'], $result->get_error_message() ) ) {
+		if (
+			! $this->registry->mark_failed(
+				(string) $item['signature'],
+				$result->get_error_message(),
+				$this->registry_item_context( $item, $attempts )
+			)
+		) {
 			return $this->state_persistence_error();
 		}
 
@@ -224,7 +231,9 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 	private function complete_successful_upload( array $item, array $result ) {
 		$this->remember_remote_parent_from_result( $result );
 
-		if ( ! $this->registry->mark_uploaded( (string) $item['signature'], $result ) ) {
+		$record = array_merge( $result, $this->registry_item_context( $item ) );
+
+		if ( ! $this->registry->mark_uploaded( (string) $item['signature'], $record ) ) {
 			return $this->state_persistence_error();
 		}
 
@@ -252,6 +261,11 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 		$settings = $this->settings->get();
 
 		if ( empty( $settings['delete_local_after_upload'] ) ) {
+			return;
+		}
+
+		if ( $this->is_wpvivid_listed_multi_file_item( $item ) ) {
+			$this->maybe_delete_wpvivid_set_files( $item );
 			return;
 		}
 

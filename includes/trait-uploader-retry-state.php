@@ -52,7 +52,8 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Retry_State {
 		$signature = isset( $item['signature'] ) ? (string) $item['signature'] : '';
 
 		if ( '' !== $signature ) {
-			if ( ! $this->registry->mark_failed( $signature, $message ) || ! $this->queue->remove( $signature ) ) {
+			$attempts = isset( $item['attempts'] ) ? absint( $item['attempts'] ) : 0;
+			if ( ! $this->registry->mark_failed( $signature, $message, $this->registry_item_context( $item, $attempts ) ) || ! $this->queue->remove( $signature ) ) {
 				return $this->state_persistence_error();
 			}
 		}

@@ -70,6 +70,11 @@
 	margin: 12px 0 20px;
 }
 
+.alynt-drime-wpvivid-failed-uploads {
+	max-width: var(--alynt-drime-panel-width);
+	margin: 12px 0 20px;
+}
+
 .alynt-drime-wpvivid-time-reference {
 	font-weight: 600;
 	margin: 8px 0;
@@ -88,6 +93,10 @@
 }
 
 .alynt-drime-wpvivid-active-actions form {
+	margin: 0;
+}
+
+.alynt-drime-wpvivid-failed-uploads form {
 	margin: 0;
 }
 

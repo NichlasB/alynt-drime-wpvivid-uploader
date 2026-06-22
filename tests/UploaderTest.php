@@ -17,6 +17,13 @@ class UploaderTest extends TestCase {
 	 */
 	private $file = '';
 
+	/**
+	 * Additional temporary files.
+	 *
+	 * @var array<int,string>
+	 */
+	private $extra_files = array();
+
 	protected function setUp(): void {
 		parent::setUp();
 		Monkey\setUp();
@@ -28,6 +35,12 @@ class UploaderTest extends TestCase {
 	protected function tearDown(): void {
 		if ( is_file( $this->file ) ) {
 			unlink( $this->file );
+		}
+
+		foreach ( $this->extra_files as $file ) {
+			if ( is_file( $file ) ) {
+				unlink( $file );
+			}
 		}
 
 		Monkey\tearDown();
@@ -227,6 +240,22 @@ class UploaderTest extends TestCase {
 		$this->assertSame( 1, $options[ Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION ]['sig-one']['attempts'] );
 	}
 
+	public function test_failed_upload_stores_requeue_context() {
+		$options = $this->base_options();
+		$client  = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$client->connection_result = new WP_Error( 'alynt_drime_api_error', 'Gateway timeout.', array( 'status' => 504 ) );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+		$failed = $options[ Alynt_Drime_WPvivid_Uploader_Backup_Registry::FAILED_OPTION ]['sig-one'];
+
+		$this->assertTrue( is_wp_error( $result ) );
+		$this->assertSame( 'Gateway timeout.', $failed['message'] );
+		$this->assertSame( basename( $this->file ), $failed['name'] );
+		$this->assertSame( $this->file, $failed['path'] );
+		$this->assertSame( 1, $failed['attempts'] );
+	}
+
 	public function test_malformed_signed_url_response_fails_before_uploading_parts() {
 		$options = $this->base_options();
 		$client  = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
@@ -301,6 +330,65 @@ class UploaderTest extends TestCase {
 		$result = $uploader->upload_next();
 
 		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertFileDoesNotExist( $this->file );
+	}
+
+	public function test_successful_split_set_upload_waits_before_local_delete() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['delete_local_after_upload'] = true;
+		$options[ Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION ]['sig-one']['wpvivid'] = $this->wpvivid_metadata(
+			array(
+				basename( $this->file ),
+				'missing-part.zip',
+			)
+		);
+
+		Functions\when( 'wp_delete_file' )->alias(
+			function ( $path ) {
+				return is_file( $path ) ? unlink( $path ) : false;
+			}
+		);
+
+		$client   = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertFileExists( $this->file );
+		$this->assertSame( 'set-one', $options[ Alynt_Drime_WPvivid_Uploader_Backup_Registry::UPLOADED_OPTION ]['sig-one']['wpvivid']['set_signature'] );
+	}
+
+	public function test_successful_final_split_set_upload_deletes_all_uploaded_parts() {
+		$previous = $this->temporary_file( 'previous-part.zip' );
+		$options  = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['delete_local_after_upload'] = true;
+		$options[ Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION ]['sig-one']['wpvivid'] = $this->wpvivid_metadata(
+			array(
+				basename( $previous ),
+				basename( $this->file ),
+			)
+		);
+		$options[ Alynt_Drime_WPvivid_Uploader_Backup_Registry::UPLOADED_OPTION ]['sig-prev'] = array(
+			'path'          => $previous,
+			'remote_name'   => basename( $previous ),
+			'uploaded_at'   => time(),
+			'remote_status' => 'uploaded',
+		);
+
+		Functions\when( 'wp_delete_file' )->alias(
+			function ( $path ) {
+				return is_file( $path ) ? unlink( $path ) : false;
+			}
+		);
+
+		$client   = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$uploader = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertFileDoesNotExist( $previous );
 		$this->assertFileDoesNotExist( $this->file );
 	}
 
@@ -429,6 +517,36 @@ class UploaderTest extends TestCase {
 		fseek( $handle, Alynt_Drime_WPvivid_Uploader_Drime_Client::DEFAULT_MULTIPART_SIZE + 100 );
 		fwrite( $handle, 'x' );
 		fclose( $handle );
+	}
+
+	/**
+	 * Creates a temporary local backup file.
+	 *
+	 * @param string $name Name.
+	 * @return string
+	 */
+	private function temporary_file( $name ) {
+		$path                = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'alynt-drime-' . uniqid( '', true ) . '-' . $name;
+		$this->extra_files[] = $path;
+		file_put_contents( $path, 'backup' );
+
+		return $path;
+	}
+
+	/**
+	 * Builds WPvivid listed-set metadata.
+	 *
+	 * @param array<int,string> $set_files Set files.
+	 * @return array<string,mixed>
+	 */
+	private function wpvivid_metadata( array $set_files ) {
+		return array(
+			'backup_id'     => 'backup-one',
+			'set_signature' => 'set-one',
+			'set_files'     => $set_files,
+			'from_list'     => true,
+			'file_count'    => count( $set_files ),
+		);
 	}
 
 	/**

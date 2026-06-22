@@ -34,6 +34,34 @@ class Alynt_Drime_WPvivid_Uploader_Queue {
 	}
 
 	/**
+	 * Adds an item to the front of the queue.
+	 *
+	 * @param array<string,mixed>               $item Item.
+	 * @param array<string,array<string,mixed>> $uploaded Uploaded records keyed by signature.
+	 * @return bool
+	 *
+	 * @since 0.5.1
+	 */
+	public function prepend( array $item, array $uploaded = array() ) {
+		$queue = $this->all();
+
+		if ( empty( $item['signature'] ) ) {
+			return false;
+		}
+
+		$signature = (string) $item['signature'];
+		if ( isset( $uploaded[ $signature ] ) || isset( $queue[ $signature ] ) || $this->has_duplicate_item( $queue, $item ) ) {
+			return false;
+		}
+
+		$item['queued_at'] = time();
+		$item['attempts']  = isset( $item['attempts'] ) ? absint( $item['attempts'] ) : 0;
+		$queue             = array( $signature => $item ) + $queue;
+
+		return $this->persist_array_option( self::QUEUE_OPTION, $queue );
+	}
+
+	/**
 	 * Adds multiple items using one option write.
 	 *
 	 * @param array<int,array<string,mixed>>    $items Items.

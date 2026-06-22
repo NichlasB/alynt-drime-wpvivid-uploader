@@ -1,6 +1,6 @@
 # Alynt Drime WPvivid Uploader Implementation Plan
 
-Updated: 2026-06-21
+Updated: 2026-06-22
 
 ## Current State
 
@@ -32,6 +32,35 @@ Updated: 2026-06-21
 - Configurable multipart chunk-size support is implemented, committed, pushed to `origin/master`, and has passed post-feature review workflows plus LocalWP/Drime E2E testing.
 - Remote Drime retention is implemented in the current working tree as a conservative manual-only feature: registry-owned uploads only, 60-day default, Drime trash only, and no permanent remote deletion path.
 - Remote Drime Retention post-feature review sequence is complete. Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation Review, and Feature Security Review found no blocking issues. LocalWP dry-run runtime verification and one approved live Drime trash verification are complete.
+- v0.5.1 incident hardening is implemented in the current working tree after the first live DrMorses.TV failed upload: Drime control requests now allow a longer timeout, failed upload records preserve safe requeue context, administrators can retry readable failed files from the status UI, and local deletion waits for every WPvivid-listed split part before cleaning up the local set.
+
+### Feature Slice: v0.5.1 Multipart Failure Recovery
+
+Status: implemented in source; pending final feature-stage/release workflow closeout.
+
+#### Trigger
+
+- Live DrMorses.TV `v0.5.0` encountered a terminal failed upload for a large WPvivid split archive part.
+- Diagnostics showed repeated slow Drime multipart signing/preflight responses and exposed a recovery hazard: local deletion had already removed the successfully uploaded `part001`, so scanner completeness checks could not naturally requeue the remaining split set.
+
+#### Implemented
+
+- Increased Drime JSON/control-request timeout from 45 seconds to 180 seconds.
+- Stored safe failed-upload context in the failed registry: basename, path for local requeue, attempts, size, and sanitized WPvivid set metadata.
+- Added an admin Failed Uploads table with per-file `Retry Upload` actions protected by `manage_options` and admin nonces.
+- Requeued readable failed files at the front of the upload queue with attempts reset to zero, then cleared the failed record so any later failure is recorded fresh.
+- Preserved WPvivid set metadata in uploaded registry records so local cleanup can reason about complete split sets.
+- Changed `delete_local_after_upload` behavior for WPvivid-listed multi-file sets: individual parts are kept until all listed parts are uploaded, then the local set is deleted together.
+
+#### Validation
+
+- Added PHPUnit coverage for:
+  - extended Drime API timeout;
+  - failed registry requeue context;
+  - queue prepend behavior;
+  - split-set local deletion waiting for incomplete sets;
+  - split-set cleanup after the final uploaded part.
+- Full PHPUnit and PHPCS are required before release approval.
 
 ## Target Test Site
 

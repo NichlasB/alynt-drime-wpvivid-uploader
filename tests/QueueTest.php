@@ -138,6 +138,32 @@ class QueueTest extends TestCase {
 		$this->assertSame( 1, $updates );
 	}
 
+	public function test_prepend_adds_retry_item_to_front_of_queue() {
+		$options = array(
+			Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION => array(
+				'two' => array(
+					'signature' => 'two',
+					'path'      => 'C:/backups/two.zip',
+					'name'      => 'two.zip',
+				),
+			),
+		);
+		$queue   = $this->queue_with_options( $options );
+
+		$this->assertTrue(
+			$queue->prepend(
+				array(
+					'signature' => 'one',
+					'path'      => 'C:/backups/one.zip',
+					'name'      => 'one.zip',
+				)
+			)
+		);
+
+		$this->assertSame( array( 'one', 'two' ), array_keys( $options[ Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION ] ) );
+		$this->assertSame( 0, $options[ Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION ]['one']['attempts'] );
+	}
+
 	public function test_clear_active_deletes_active_upload_state() {
 		$options = array(
 			Alynt_Drime_WPvivid_Uploader_Queue::QUEUE_OPTION  => array(),

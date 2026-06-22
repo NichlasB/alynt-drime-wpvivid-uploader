@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Admin_Page {
+	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Failed_Uploads;
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Notices;
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Settings;
 	use Alynt_Drime_WPvivid_Uploader_Admin_Page_Cron_Health;
@@ -162,6 +163,7 @@ class Alynt_Drime_WPvivid_Uploader_Admin_Page {
 			$this->render_status_summary( $queue, $uploaded, $failed );
 			$this->render_scan_state( $settings, $events, $cron_health );
 			$this->render_active_upload_state( $active );
+			$this->render_failed_uploads( $failed );
 			$this->render_remote_retention_status( $settings, $retention );
 			$this->render_diagnostics_panel( $settings, $diagnostics );
 			$this->render_recent_events( $events );

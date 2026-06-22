@@ -156,6 +156,36 @@ class DrimeClientTest extends TestCase {
 		$this->assertSame( array( 'status' => 429 ), $result->get_error_data() );
 	}
 
+	public function test_api_requests_use_extended_timeout() {
+		Functions\when( 'get_option' )->alias(
+			function ( $name, $default = array() ) {
+				if ( Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME !== $name ) {
+					return $default;
+				}
+
+				return array(
+					'api_token'    => 'test-token',
+					'workspace_id' => 0,
+				);
+			}
+		);
+
+		Functions\expect( 'wp_remote_request' )->once()->with(
+			Alynt_Drime_WPvivid_Uploader_Drime_Client::BASE_URL . '/drive/file-entries?workspaceId=0&perPage=1',
+			\Mockery::on(
+				function ( $args ) {
+					return Alynt_Drime_WPvivid_Uploader_Drime_Client::API_REQUEST_TIMEOUT === $args['timeout'];
+				}
+			)
+		)->andReturn( array( 'body' => '{"status":"success"}' ) );
+		Functions\expect( 'wp_remote_retrieve_response_code' )->once()->andReturn( 200 );
+		Functions\expect( 'wp_remote_retrieve_body' )->once()->andReturn( '{"status":"success"}' );
+
+		$client = new Alynt_Drime_WPvivid_Uploader_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+
+		$this->assertSame( array( 'status' => 'success' ), $client->test_connection() );
+	}
+
 	public function test_get_logged_user_accepts_nested_user_response() {
 		Functions\when( 'get_option' )->alias(
 			function ( $name, $default = array() ) {

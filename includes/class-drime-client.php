@@ -24,6 +24,7 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 	const MAX_MULTIPART_CHUNK_SIZE  = Alynt_Drime_WPvivid_Uploader_Settings::MAX_MULTIPART_CHUNK_SIZE_MB * 1048576;
 	const DEFAULT_MULTIPART_SIZE_MB = Alynt_Drime_WPvivid_Uploader_Settings::DEFAULT_MULTIPART_CHUNK_SIZE_MB;
 	const DEFAULT_MULTIPART_SIZE    = self::DEFAULT_MULTIPART_SIZE_MB * 1048576;
+	const API_REQUEST_TIMEOUT       = 180;
 
 	/**
 	 * Settings.
@@ -341,7 +342,7 @@ class Alynt_Drime_WPvivid_Uploader_Drime_Client {
 
 		$args = array(
 			'method'  => $method,
-			'timeout' => 45,
+			'timeout' => self::API_REQUEST_TIMEOUT,
 			'headers' => array(
 				'Authorization' => 'Bearer ' . $token,
 				'Content-Type'  => 'application/json',

@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Alynt_Drime_WPvivid_Uploader_Plugin {
 	use Alynt_Drime_WPvivid_Uploader_Plugin_Admin_Actions;
+	use Alynt_Drime_WPvivid_Uploader_Plugin_Failed_Upload_Actions;
 	use Alynt_Drime_WPvivid_Uploader_Plugin_Notification_Actions;
 
 	/**
@@ -210,6 +211,8 @@ class Alynt_Drime_WPvivid_Uploader_Plugin {
 		add_action( 'admin_post_alynt_drime_wpvivid_scan_now', array( $this, 'handle_scan_now' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_upload_next', array( $this, 'handle_upload_next' ) );
+
+		add_action( 'admin_post_alynt_drime_wpvivid_requeue_failed_upload', array( $this, 'handle_requeue_failed_upload' ) );
 
 		add_action( 'admin_post_alynt_drime_wpvivid_preview_remote_retention', array( $this, 'handle_preview_remote_retention' ) );
 

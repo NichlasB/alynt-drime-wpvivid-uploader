@@ -3,7 +3,7 @@
  * Plugin Name:       Alynt Drime WPvivid Uploader
  * Plugin URI:        https://alynt.com/
  * Description:       Upload completed WPvivid local backup archives to Drime.
- * Version:           0.5.0
+ * Version:           0.5.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Alynt
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.5.0' );
+define( 'ALYNT_DRIME_WPVIVID_UPLOADER_VERSION', '0.5.1' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_WP', '6.0' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_MINIMUM_PHP', '7.4' );
 define( 'ALYNT_DRIME_WPVIVID_UPLOADER_FILE', __FILE__ );
@@ -77,17 +77,21 @@ $alynt_drime_wpvivid_uploader_includes = array(
 	'includes/trait-folder-browser-normalization.php',
 	'includes/trait-folder-browser-preview.php',
 	'includes/trait-failure-notifier-content.php',
+	'includes/trait-backup-registry-failed-context.php',
 	'includes/trait-uploader-active-upload.php',
 	'includes/trait-uploader-destination.php',
 	'includes/trait-uploader-multipart.php',
 	'includes/trait-uploader-multipart-session.php',
 	'includes/trait-uploader-multipart-parts.php',
 	'includes/trait-uploader-retry-state.php',
+	'includes/trait-uploader-wpvivid-set-cleanup.php',
 	'includes/trait-option-storage.php',
+	'includes/trait-admin-page-failed-uploads.php',
 	'includes/trait-admin-page-notices.php',
 	'includes/trait-admin-page-settings.php',
 	'includes/trait-admin-page-cron-health.php',
 	'includes/trait-admin-page-status.php',
+	'includes/trait-plugin-failed-upload-actions.php',
 	'includes/trait-plugin-admin-actions.php',
 	'includes/trait-plugin-notification-actions.php',
 	'includes/class-settings.php',

@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.1.0
  */
 class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
+	use Alynt_Drime_WPvivid_Uploader_Backup_Registry_Failed_Context;
 	use Alynt_Drime_WPvivid_Uploader_Option_Storage;
 
 	const UPLOADED_OPTION       = 'alynt_drime_wpvivid_uploaded_files';
@@ -66,20 +67,38 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 	/**
 	 * Marks a file failed.
 	 *
-	 * @param string $signature Signature.
-	 * @param string $message Failure message.
+	 * @param string              $signature Signature.
+	 * @param string              $message Failure message.
+	 * @param array<string,mixed> $context Failure context.
 	 * @return bool
 	 *
 	 * @since 0.1.0
 	 */
-	public function mark_failed( $signature, $message ) {
+	public function mark_failed( $signature, $message, array $context = array() ) {
 		$failed               = $this->get_failed();
-		$failed[ $signature ] = array(
-			'message'   => sanitize_text_field( $message ),
-			'failed_at' => time(),
+		$failed[ $signature ] = array_merge(
+			$this->sanitize_failed_context( $context ),
+			array(
+				'message'   => sanitize_text_field( $message ),
+				'failed_at' => time(),
+			)
 		);
 
 		return $this->persist_array_option( self::FAILED_OPTION, $failed );
+	}
+
+	/**
+	 * Returns one failed record.
+	 *
+	 * @param string $signature Signature.
+	 * @return array<string,mixed>
+	 *
+	 * @since 0.5.1
+	 */
+	public function get_failed_record( $signature ) {
+		$failed = $this->get_failed();
+
+		return isset( $failed[ $signature ] ) && is_array( $failed[ $signature ] ) ? $failed[ $signature ] : array();
 	}
 
 	/**
