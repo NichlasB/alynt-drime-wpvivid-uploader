@@ -151,25 +151,28 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 	 * @param int    $workspace_id Workspace ID.
 	 * @param string $relative_path Relative path.
 	 * @param int    $parent_id Parent folder ID.
+	 * @param int    $base_parent_id Optional selected base folder ID.
 	 * @return bool
 	 *
 	 * @since 0.1.0
 	 */
-	public function remember_drime_location( $workspace_id, $relative_path, $parent_id ) {
-		$workspace_id  = absint( $workspace_id );
-		$relative_path = $this->normalize_relative_path( $relative_path );
-		$parent_id     = absint( $parent_id );
+	public function remember_drime_location( $workspace_id, $relative_path, $parent_id, $base_parent_id = 0 ) {
+		$workspace_id   = absint( $workspace_id );
+		$relative_path  = $this->normalize_relative_path( $relative_path );
+		$parent_id      = absint( $parent_id );
+		$base_parent_id = absint( $base_parent_id );
 
 		if ( '' === $relative_path || $parent_id <= 0 ) {
 			return true;
 		}
 
 		$locations = $this->get_drime_locations();
-		$locations[ $this->location_key( $workspace_id, $relative_path ) ] = array(
-			'workspace_id'  => $workspace_id,
-			'relative_path' => $relative_path,
-			'parent_id'     => $parent_id,
-			'updated_at'    => time(),
+		$locations[ $this->location_key( $workspace_id, $relative_path, $base_parent_id ) ] = array(
+			'workspace_id'   => $workspace_id,
+			'relative_path'  => $relative_path,
+			'base_parent_id' => $base_parent_id,
+			'parent_id'      => $parent_id,
+			'updated_at'     => time(),
 		);
 
 		return $this->persist_array_option( self::DRIME_LOCATION_OPTION, $locations );
@@ -180,26 +183,37 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 	 *
 	 * @param int    $workspace_id Workspace ID.
 	 * @param string $relative_path Relative path.
+	 * @param int    $base_parent_id Optional selected base folder ID.
 	 * @return int
 	 *
 	 * @since 0.1.0
 	 */
-	public function get_drime_parent_id( $workspace_id, $relative_path ) {
-		$workspace_id  = absint( $workspace_id );
-		$relative_path = $this->normalize_relative_path( $relative_path );
+	public function get_drime_parent_id( $workspace_id, $relative_path, $base_parent_id = 0 ) {
+		$workspace_id   = absint( $workspace_id );
+		$relative_path  = $this->normalize_relative_path( $relative_path );
+		$base_parent_id = absint( $base_parent_id );
 
 		if ( '' === $relative_path ) {
 			return 0;
 		}
 
 		$locations = $this->get_drime_locations();
-		$key       = $this->location_key( $workspace_id, $relative_path );
+		$key       = $this->location_key( $workspace_id, $relative_path, $base_parent_id );
 
-		if ( empty( $locations[ $key ] ) || ! is_array( $locations[ $key ] ) ) {
+		if ( ! empty( $locations[ $key ] ) && is_array( $locations[ $key ] ) ) {
+			return empty( $locations[ $key ]['parent_id'] ) ? 0 : absint( $locations[ $key ]['parent_id'] );
+		}
+
+		$legacy_key = $this->location_key( $workspace_id, $relative_path );
+		if ( empty( $locations[ $legacy_key ] ) || ! is_array( $locations[ $legacy_key ] ) ) {
 			return 0;
 		}
 
-		return empty( $locations[ $key ]['parent_id'] ) ? 0 : absint( $locations[ $key ]['parent_id'] );
+		if ( $base_parent_id > 0 && ! empty( $locations[ $legacy_key ]['base_parent_id'] ) && absint( $locations[ $legacy_key ]['base_parent_id'] ) !== $base_parent_id ) {
+			return 0;
+		}
+
+		return empty( $locations[ $legacy_key ]['parent_id'] ) ? 0 : absint( $locations[ $legacy_key ]['parent_id'] );
 	}
 
 	/**
@@ -253,10 +267,14 @@ class Alynt_Drime_WPvivid_Uploader_Backup_Registry {
 	 *
 	 * @param int    $workspace_id Workspace ID.
 	 * @param string $relative_path Relative path.
+	 * @param int    $base_parent_id Optional selected base folder ID.
 	 * @return string
 	 */
-	private function location_key( $workspace_id, $relative_path ) {
-		return hash( 'sha256', absint( $workspace_id ) . '|' . $relative_path );
+	private function location_key( $workspace_id, $relative_path, $base_parent_id = 0 ) {
+		$base_parent_id = absint( $base_parent_id );
+		$key            = absint( $workspace_id ) . '|';
+		$key           .= $base_parent_id > 0 ? $base_parent_id . '|' : '';
+		return hash( 'sha256', $key . $relative_path );
 	}
 
 	/**

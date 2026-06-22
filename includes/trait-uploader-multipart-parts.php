@@ -33,6 +33,11 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 		}
 
 		$chunk_size = $this->multipart_chunk_size();
+		$memory_ok  = $this->validate_multipart_chunk_memory( $chunk_size );
+		if ( is_wp_error( $memory_ok ) ) {
+			fclose( $handle );
+			return $memory_ok;
+		}
 
 		for ( $part_number = 1; $part_number <= $session['total']; $part_number++ ) {
 			if ( isset( $parts[ $part_number ] ) ) {
@@ -116,5 +121,59 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart_Parts {
 		$data = fread( $handle, $chunk_size );
 
 		return false === $data ? new WP_Error( 'alynt_drime_file_read_failed', __( 'Could not read the next backup chunk.', 'alynt-drime-wpvivid-uploader' ) ) : $data;
+	}
+
+	/**
+	 * Ensures the configured chunk size can be held safely in memory.
+	 *
+	 * @param int $chunk_size Chunk size in bytes.
+	 * @return true|WP_Error
+	 */
+	private function validate_multipart_chunk_memory( $chunk_size ) {
+		$memory_limit = $this->memory_limit_bytes( ini_get( 'memory_limit' ) );
+		if ( $memory_limit <= 0 ) {
+			return true;
+		}
+
+		$reserved_bytes = 32 * 1048576;
+		$needed_bytes   = memory_get_usage( true ) + absint( $chunk_size ) + $reserved_bytes;
+		if ( $needed_bytes <= $memory_limit ) {
+			return true;
+		}
+
+		return new WP_Error(
+			'alynt_drime_chunk_exceeds_memory',
+			__( 'The configured multipart chunk size is too large for the current PHP memory limit. Reduce the chunk size or raise the PHP memory limit before uploading.', 'alynt-drime-wpvivid-uploader' )
+		);
+	}
+
+	/**
+	 * Parses a PHP memory limit shorthand value into bytes.
+	 *
+	 * @param string|false $value Memory limit.
+	 * @return int
+	 */
+	private function memory_limit_bytes( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value || '-1' === $value ) {
+			return 0;
+		}
+
+		$unit   = strtolower( substr( $value, -1 ) );
+		$number = (float) $value;
+
+		switch ( $unit ) {
+			case 'g':
+				$number *= 1024;
+				// Fall through.
+			case 'm':
+				$number *= 1024;
+				// Fall through.
+			case 'k':
+				$number *= 1024;
+				break;
+		}
+
+		return (int) $number;
 	}
 }

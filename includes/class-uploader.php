@@ -517,6 +517,6 @@ class Alynt_Drime_WPvivid_Uploader_Uploader {
 			return;
 		}
 
-		$this->registry->remember_drime_location( absint( $settings['workspace_id'] ), (string) $settings['relative_path'], absint( $result['drime']['fileEntry']['parent_id'] ) );
+		$this->registry->remember_drime_location( absint( $settings['workspace_id'] ), (string) $settings['relative_path'], absint( $result['drime']['fileEntry']['parent_id'] ), absint( $settings['parent_folder_id'] ) );
 	}
 }

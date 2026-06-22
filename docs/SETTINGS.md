@@ -18,7 +18,7 @@ Option name: `alynt_drime_wpvivid_settings`
 | `server_cron_expected` | boolean | `false` | boolean cast from checkbox presence | Behavior | Enables admin reminders when scheduled scans should be driven by WP-CLI but no WP-CLI scan evidence has been observed. |
 | `scan_interval` | string | `fifteen_minutes` | internal fixed value | Internal | WP-Cron schedule key used by automatic scanning. |
 | `min_file_age_seconds` | integer | `900` | `absint`, minimum `60` | Behavior | Minimum modified age before a file can be queued. |
-| `multipart_chunk_size_mb` | integer | `32` | `absint`, range `5` to `64` | Behavior | Multipart upload part size in MB. `32` is recommended for large backups. |
+| `multipart_chunk_size_mb` | integer | `32` | `absint`, range `5` to `256` | Behavior | Multipart upload part size in MB. `32` is recommended for large backups; larger values require enough PHP memory for one part plus runtime overhead and should be validated against the current Drime account and network path before production use. |
 | `delete_local_after_upload` | boolean | `false` | boolean cast from checkbox presence | Behavior | Deletes local backup files after confirmed upload when enabled. |
 | `remote_retention_enabled` | boolean | `false` | boolean cast from checkbox presence | Behavior | Allows manual cleanup of old Drime files uploaded by this plugin. |
 | `remote_retention_days` | integer | `60` | `absint`, range `1` to `365` | Behavior | Uploaded registry records older than this many days are eligible for manual remote cleanup. |

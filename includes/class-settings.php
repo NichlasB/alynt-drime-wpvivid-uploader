@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Alynt_Drime_WPvivid_Uploader_Settings {
 	const OPTION_NAME                     = 'alynt_drime_wpvivid_settings';
 	const MIN_MULTIPART_CHUNK_SIZE_MB     = 5;
-	const MAX_MULTIPART_CHUNK_SIZE_MB     = 64;
+	const MAX_MULTIPART_CHUNK_SIZE_MB     = 256;
 	const DEFAULT_MULTIPART_CHUNK_SIZE_MB = 32;
 	const MIN_REMOTE_RETENTION_DAYS       = 1;
 	const MAX_REMOTE_RETENTION_DAYS       = 365;

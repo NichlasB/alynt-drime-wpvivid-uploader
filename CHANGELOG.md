@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-22
+
+### Changed
+
+- Raised the configurable Drime multipart chunk-size validation range from 5-64 MB to 5-256 MB while keeping 32 MB as the conservative recommended value.
+- Added a multipart upload memory guard so oversized chunk settings fail gracefully instead of exhausting PHP memory.
+- Reused cached concrete Drime destination folder IDs before folder traversal so repeated selected-base relative-path uploads do not try to recreate an existing subfolder.
+
 ## [0.5.1] - 2026-06-22
 
 ### Added

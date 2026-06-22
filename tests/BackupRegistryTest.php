@@ -65,6 +65,51 @@ class BackupRegistryTest extends TestCase {
 		$this->assertSame( array( 'one.zip', 'two.zip' ), $record['wpvivid']['set_files'] );
 	}
 
+	public function test_remembered_drime_location_is_scoped_to_selected_base_parent() {
+		$options  = array();
+		$registry = $this->registry_with_options( $options );
+
+		$this->assertTrue( $registry->remember_drime_location( 1, '/site1.com', 654, 321 ) );
+		$this->assertTrue( $registry->remember_drime_location( 1, '/site1.com', 777, 999 ) );
+
+		$this->assertSame( 654, $registry->get_drime_parent_id( 1, '/site1.com', 321 ) );
+		$this->assertSame( 777, $registry->get_drime_parent_id( 1, '/site1.com', 999 ) );
+		$this->assertSame( 0, $registry->get_drime_parent_id( 1, '/site1.com', 555 ) );
+	}
+
+	public function test_selected_base_parent_can_use_legacy_drime_location_cache() {
+		$options  = array(
+			Alynt_Drime_WPvivid_Uploader_Backup_Registry::DRIME_LOCATION_OPTION => array(
+				$this->location_key( 1, '/site1.com' ) => array(
+					'workspace_id'  => 1,
+					'relative_path' => '/site1.com',
+					'parent_id'     => 777,
+					'updated_at'    => time(),
+				),
+			),
+		);
+		$registry = $this->registry_with_options( $options );
+
+		$this->assertSame( 777, $registry->get_drime_parent_id( 1, '/site1.com', 321 ) );
+	}
+
+	public function test_selected_base_parent_ignores_legacy_record_for_different_base_parent() {
+		$options  = array(
+			Alynt_Drime_WPvivid_Uploader_Backup_Registry::DRIME_LOCATION_OPTION => array(
+				$this->location_key( 1, '/site1.com' ) => array(
+					'workspace_id'    => 1,
+					'relative_path'   => '/site1.com',
+					'base_parent_id'  => 999,
+					'parent_id'       => 777,
+					'updated_at'      => time(),
+				),
+			),
+		);
+		$registry = $this->registry_with_options( $options );
+
+		$this->assertSame( 0, $registry->get_drime_parent_id( 1, '/site1.com', 321 ) );
+	}
+
 	/**
 	 * Creates a registry with mocked option storage.
 	 *
@@ -86,5 +131,16 @@ class BackupRegistryTest extends TestCase {
 		);
 
 		return new Alynt_Drime_WPvivid_Uploader_Backup_Registry();
+	}
+
+	/**
+	 * Builds the registry location key.
+	 *
+	 * @param int    $workspace_id Workspace ID.
+	 * @param string $relative_path Relative path.
+	 * @return string
+	 */
+	private function location_key( $workspace_id, $relative_path ) {
+		return hash( 'sha256', absint( $workspace_id ) . '|' . $relative_path );
 	}
 }

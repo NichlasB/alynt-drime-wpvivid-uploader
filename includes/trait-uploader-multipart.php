@@ -30,6 +30,11 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Multipart {
 		$extension = $this->multipart_extension( $remote_name );
 		$this->log_multipart_started( $remote_name, $size );
 
+		$memory_ok = $this->validate_multipart_chunk_memory( $this->multipart_chunk_size() );
+		if ( is_wp_error( $memory_ok ) ) {
+			return $memory_ok;
+		}
+
 		$session = $this->multipart_session( $path, $remote_name, $size, $extension, $item, $parent_id );
 		if ( is_wp_error( $session ) ) {
 			return $session;

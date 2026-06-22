@@ -81,7 +81,24 @@ class SettingsTest extends TestCase {
 		);
 
 		$this->assertSame( 5, $low['multipart_chunk_size_mb'] );
-		$this->assertSame( 64, $high['multipart_chunk_size_mb'] );
+		$this->assertSame( 256, $high['multipart_chunk_size_mb'] );
+	}
+
+	public function test_multipart_chunk_size_accepts_supported_validation_targets() {
+		$options  = array();
+		$settings = $this->settings_with_options( $options );
+
+		foreach ( array( 64, 128, 192, 256 ) as $chunk_size ) {
+			$saved = $settings->update(
+				array(
+					'multipart_chunk_size_mb' => $chunk_size,
+				)
+			);
+
+			$this->assertSame( $chunk_size, $saved['multipart_chunk_size_mb'] );
+		}
+
+		$this->assertSame( 256 * 1048576, Alynt_Drime_WPvivid_Uploader_Drime_Client::MAX_MULTIPART_CHUNK_SIZE );
 	}
 
 	public function test_remote_retention_days_are_clamped_to_supported_range() {

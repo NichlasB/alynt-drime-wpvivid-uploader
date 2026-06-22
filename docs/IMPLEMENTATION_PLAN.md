@@ -62,6 +62,110 @@ Status: implemented in source; pending final feature-stage/release workflow clos
   - split-set cleanup after the final uploaded part.
 - Full PHPUnit and PHPCS are required before release approval.
 
+### Planned Feature Slice: Drime Multipart Chunk Size Validation Up To 256 MB
+
+Status: implemented in source and validated on `plugin-tester.local`. PHP syntax, PHPUnit, PHPCS, npm test, npm build, npm lint, and diff whitespace checks passed. LocalWP/Drime E2E passed at 64 MB, 128 MB, and 192 MB; 256 MB was blocked safely by the new PHP memory guard under the current `256M` memory limit.
+
+#### Trigger
+
+- Current plugin release `0.5.1` intentionally supports Drime multipart chunk sizes from 5 MB through 64 MB.
+- Live Morses Health Center testing showed the admin settings page correctly rejects `128 MB` with the current validation cap.
+- The user wants to determine whether larger Drime multipart chunks, especially `128 MB` and `256 MB`, are stable enough to support in a future plugin release.
+- This should be validated on `plugin-tester.local` before any release or live-site rollout.
+
+#### Goal
+
+- Safely test whether Drime multipart uploads work with larger chunk sizes up to 256 MB.
+- If live LocalWP/Drime validation passes, raise the plugin's maximum supported multipart chunk size from 64 MB to 256 MB.
+- Keep `64 MB` as a conservative known-good setting unless validation proves a larger recommendation is appropriate.
+
+#### Recommended Flow
+
+1. Create a fresh restore point with the wp-plugin-toolkit restore-point workflow before editing the source repo.
+2. Modify the source repo first; do not hand-edit the LocalWP installed copy as the source of truth.
+3. Update settings constants, validation copy, tests, and documentation to allow a 5-256 MB range.
+4. Build/package or otherwise sync the source plugin into `plugin-tester.local`.
+5. Use the saved Drime settings on `plugin-tester.local` only after confirming the target and that temporary Drime uploads are approved.
+6. Generate disposable local `.zip` fixtures rather than asking the user for a large file.
+7. Test staged chunk sizes:
+   - 64 MB baseline.
+   - 128 MB.
+   - 192 MB, optional if useful for a midpoint.
+   - 256 MB.
+8. For each chunk size, validate:
+   - Settings page accepts and persists the value.
+   - Multipart upload starts and creates Drime multipart state.
+   - Drime signs part URLs successfully.
+   - Each part uploads successfully.
+   - Multipart completion creates the final Drime file entry.
+   - Diagnostics do not expose bearer tokens or presigned URLs.
+   - Active upload state remains resumable and clearable.
+9. Clean up temporary local and remote test artifacts only after explicit approval when remote deletion/trash is involved.
+
+#### Test Fixture Guidance
+
+- Prefer generated temporary `.zip` files around 600-900 MB so larger chunk sizes produce multiple multipart parts without wasting excessive time.
+- For an 850 MB fixture:
+  - 64 MB should produce roughly 14 Drime parts.
+  - 128 MB should produce roughly 7 Drime parts.
+  - 256 MB should produce roughly 4 Drime parts.
+- Use fixture names that clearly mark them as disposable chunk-size validation artifacts.
+
+#### Implementation Notes
+
+- Current supported range is documented in `CHANGELOG.md` and `docs/DRIME_API_RESEARCH.md` as 5-64 MB based on prior live probing.
+- Any raise above 64 MB needs fresh live LocalWP/Drime evidence before release.
+- The plugin should continue clamping invalid saved values safely.
+- If an active multipart upload exists and the chunk size changes, the current active-state invalidation/abort behavior must remain intact.
+- Recommendation text should remain conservative even if 256 MB passes; likely recommended value is 64 MB or 128 MB unless repeated larger-file testing proves 256 MB is broadly stable.
+- The uploader reads each multipart part into memory before sending it to the signed upload URL. A runtime memory guard now stops oversized chunk settings before creating a remote multipart session when the PHP memory limit cannot safely hold one part plus runtime overhead.
+
+#### Tests And Verification
+
+- Update PHPUnit settings-sanitization coverage for:
+  - minimum below 5 MB clamps or rejects as currently expected;
+  - accepted values at 64 MB, 128 MB, 192 MB, and 256 MB;
+  - values above 256 MB clamp or reject as designed.
+- Update admin UI tests/snapshots or runtime probes to confirm the number input advertises the new max.
+- Run existing multipart uploader tests to confirm active-state chunk-size matching still works.
+- Run `php -l`, PHPUnit, PHPCS, npm test/build/lint as applicable.
+- Run `plugin-tester local-only` E2E with Novamira MCP available when possible.
+- Do not treat Drime API state, LocalWP runtime state, or saved credentials as current until reverified in the implementation chat.
+
+#### LocalWP/Drime E2E Findings
+
+- `plugin-tester.local` runtime after source sync:
+  - WordPress `7.0`.
+  - PHP `8.2.27`.
+  - PHP memory limit `256M`.
+  - Alynt Drime WPvivid Uploader active at `0.5.1`.
+  - Novamira MCP available.
+- Settings persistence accepted and restored all target values: 64 MB, 128 MB, 192 MB, and 256 MB.
+- The settings screen number input rendered `min="5"` and `max="256"`.
+- Runtime upload validation used generated disposable local fixtures in the WPvivid backup directory, then removed the local fixture files after each probe.
+- A 64 MB chunk setting uploaded a 96 MB fixture successfully to Drime through multipart upload.
+- A 128 MB chunk setting initially exposed a destination-resolution edge case where a stale saved folder hash led to a duplicate folder-create attempt. Source was updated to prefer the cached concrete Drime destination folder ID, and the 128 MB retry uploaded a 160 MB fixture successfully.
+- A 192 MB chunk setting uploaded a 224 MB fixture successfully.
+- A 256 MB chunk setting with a 288 MB fixture failed gracefully with `alynt_drime_chunk_exceeds_memory` before creating a remote file entry or leaving active upload state.
+- Queue, failed-upload state, active-upload state, and saved chunk setting were restored/clean after generated validation probes.
+- Diagnostics scan after the probes found no bearer tokens, presigned URL markers, or HTTP URLs in stored plugin diagnostics.
+- Remote Drime validation artifacts remain uploaded and were not trashed or deleted because remote cleanup requires separate explicit approval.
+
+#### Feature-Stage Workflows After Implementation
+
+Run the applicable wp-plugin-toolkit workflows in this order:
+
+1. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_LIGHT_REVIEW_PROMPT.md`
+2. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md`
+3. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md`
+4. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds2-feature\FEATURE_SECURITY_REVIEW_PROMPT.md`
+5. `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds6-maintenance\DOCUMENTATION_SYNC_AUDIT_PROMPT.md`
+
+#### Release Workflow
+
+- After implementation, tests, LocalWP/Drime E2E, and documentation sync pass, run `C:\Users\Captain\Documents\AI Workflows\Toolkits\wp-plugin-toolkit\d4-prompts\ds5-git\GIT_OPERATIONS_PROMPT.md` Option C.
+- Stop at the mandatory release approval checkpoint before commit/tag/push/GitHub release publishing.
+
 ## Target Test Site
 
 Use the LocalWP profile:

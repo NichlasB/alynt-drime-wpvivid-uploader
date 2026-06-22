@@ -27,6 +27,11 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 			return $this->resolved_drime_parent_id( $settings );
 		}
 
+		$cached_parent_id = $this->registry->get_drime_parent_id( absint( $settings['workspace_id'] ), (string) $settings['relative_path'], absint( $settings['parent_folder_id'] ) );
+		if ( $cached_parent_id > 0 ) {
+			return $cached_parent_id;
+		}
+
 		if ( empty( $settings['parent_folder_id'] ) || empty( $settings['parent_folder_hash'] ) ) {
 			return null;
 		}
@@ -87,6 +92,27 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 			return $response;
 		}
 
+		$folder = $this->find_upload_child_folder_in_response( $response, $name );
+		if ( ! empty( $folder ) ) {
+			return $folder;
+		}
+
+		$response = $this->client->list_folder_entries( $workspace_id, $parent_hash, 1, '' );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return $this->find_upload_child_folder_in_response( $response, $name );
+	}
+
+	/**
+	 * Finds a named folder in a child-folder response.
+	 *
+	 * @param array<string,mixed> $response Response.
+	 * @param string              $name Folder name.
+	 * @return array{id:int,hash:string}|array{}
+	 */
+	private function find_upload_child_folder_in_response( array $response, $name ) {
 		foreach ( $this->upload_folder_items( $response ) as $item ) {
 			if ( ! is_array( $item ) || strtolower( (string) $item['name'] ) !== strtolower( $name ) ) {
 				continue;
