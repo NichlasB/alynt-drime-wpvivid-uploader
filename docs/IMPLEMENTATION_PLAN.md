@@ -406,10 +406,12 @@ Tests and verification:
 - Unit-test that disabled notifications do not send.
 - Unit-test failure paths when `wp_mail()` returns false.
 - Source unit coverage added for settings parsing, dedupe behavior, `wp_mail()` call shape, disabled notification behavior, failed mail results, and test-email delivery through saved recipients.
-- Verify LocalWP runtime with the active site mail stack:
-  - send test email through the plugin action,
-  - confirm diagnostics record the notification attempt,
-  - if SureMail or another SMTP/logging plugin is active, confirm the email appears in that plugin's logs without exposing secrets.
+- Verify LocalWP runtime with the active site mail stack. Done on `plugin-tester.local` with SureMail/Emailit in temporary simulation mode:
+  - sent a controlled failure notification through the plugin notifier and WordPress `wp_mail()`;
+  - confirmed the duplicate notification path skipped the second identical send;
+  - confirmed diagnostics recorded `failure_email_sent` and `failure_email_skipped` during the run;
+  - confirmed SureMail log ID `13` recorded the simulated email without real delivery;
+  - confirmed the email body used the backup basename only and redacted URL/path details from the failure reason.
 - Run feature-stage workflows after implementation:
   - `FEATURE_LIGHT_REVIEW_PROMPT.md`
   - `FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md` if changed PHP/JS/CSS warrants it
