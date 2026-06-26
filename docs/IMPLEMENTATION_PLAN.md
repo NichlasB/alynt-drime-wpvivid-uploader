@@ -33,6 +33,7 @@ Updated: 2026-06-27
 - Remote Drime retention is implemented in the current working tree as a conservative manual-only feature: registry-owned uploads only, 60-day default, Drime trash only, and no permanent remote deletion path.
 - Remote Drime Retention post-feature review sequence is complete. Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation Review, and Feature Security Review found no blocking issues. LocalWP dry-run runtime verification and one approved live Drime trash verification are complete.
 - v0.5.1 incident hardening is implemented in the current working tree after the first live DrMorses.TV failed upload: Drime control requests now allow a longer timeout, failed upload records preserve safe requeue context, administrators can retry readable failed files from the status UI, and local deletion waits for every WPvivid-listed split part before cleaning up the local set.
+- v0.6.1 is accepted/stable. The release is published on GitHub, the verified zip asset is attached, LocalWP packaged upgrade validation passed, and Alynt Plugin Updater detected and installed the update from `0.6.0` to `0.6.1` through the WordPress Plugins screen.
 
 ### WPvivid Split Backup E2E Rehearsal
 
