@@ -71,6 +71,7 @@ Sources:
 - Duplicate validation now requires a `duplicates` array.
 - Available-name lookup now accepts Drime's live `available` response key and falls back to the documented `name` key.
 - Duplicate validation can send a top-level `parentId` when the plugin has resolved a concrete Drime parent folder for a configured relative path.
+- Selected-base relative-path upload resolution now treats transient Drime server errors from searched child-folder lookup as recoverable by retrying with the full child-folder list. If child listing misses the expected folder, the uploader checks Drime's broader user folder tree by `parent_id` before creating anything. Folder creation still only happens after these lookup paths confirm the child folder is absent.
 - Successful relative-path uploads now remember the returned `fileEntry.parent_id` for later duplicate validation.
 - Direct upload and S3 registration now require a `fileEntry` object.
 - Multipart create now requires `key` and `uploadId`.

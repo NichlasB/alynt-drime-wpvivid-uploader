@@ -1,6 +1,6 @@
 # Alynt Drime WPvivid Uploader Implementation Plan
 
-Updated: 2026-06-22
+Updated: 2026-06-27
 
 ## Current State
 
@@ -23,7 +23,7 @@ Updated: 2026-06-22
 - Pre-release Security Audit workflow is complete. No critical, high, medium, or low blocking issues were found; admin actions are capability/nonce-gated, outputs are escaped, diagnostics are redacted, direct database SQL is absent, dangerous-function scans found only the intentional Drime cURL upload path, and Composer/npm audits are clean.
 - Release validation/package refresh is complete for the current source. Final lint, tests, build, npm audit, Composer audit, PHP syntax sweep, distribution zip audit, LocalWP packaged install, and admin render probe passed.
 - Drime API schema documentation pass is complete against current public docs, and live-token checks have verified connection, duplicate-validation response shape, available-name response key, direct small-file upload, and the parent-ID duplicate-validation workaround for relative-path uploads.
-- WPvivid source verification is complete against installed Free/Pro source and sanitized runtime options; a real single-file database backup fixture has been tested, and a WPvivid-list-backed split-part fixture has validated `.part001.zip` / `.part002.zip` scanner gating. A full backup-engine-generated split backup remains untested.
+- WPvivid source verification is complete against installed Free/Pro source and sanitized runtime options; a real single-file database backup fixture has been tested, a WPvivid-list-backed split-part fixture has validated `.part001.zip` / `.part002.zip` scanner gating, and a full WPvivid backup-engine-generated 5-part split backup has scanned, queued, and uploaded successfully to Drime from `plugin-tester.local`.
 - Feature security review is complete for the current changed code; multipart signed URLs are validated before upload and diagnostics redacts sensitive substrings in scalar values.
 - LocalWP integration has started on `plugin-tester.local`: the plugin is installed/active, the admin page loads, settings save, diagnostics export works, a real WPvivid database backup queues after stable-file scans, that backup uploaded successfully to Drime, duplicate-skip behavior works with the cached Drime parent folder ID, fresh plus interrupted-resume multipart uploads succeeded against Drime, remote multipart abort succeeds through the clear-active path, invalid-token retry handling is verified after auth-preflight hardening, malformed multipart plus HTTP `429` response paths have regression coverage, and a refreshed 33-file packaged release zip has installed/activated successfully through WordPress's upgrader API after the pre-release closeout.
 - PHP syntax checks pass across plugin PHP files excluding vendor and node_modules.
@@ -33,6 +33,31 @@ Updated: 2026-06-22
 - Remote Drime retention is implemented in the current working tree as a conservative manual-only feature: registry-owned uploads only, 60-day default, Drime trash only, and no permanent remote deletion path.
 - Remote Drime Retention post-feature review sequence is complete. Feature Light Review, Feature Bloat and Structure Review, Feature UI/UX Implementation Review, and Feature Security Review found no blocking issues. LocalWP dry-run runtime verification and one approved live Drime trash verification are complete.
 - v0.5.1 incident hardening is implemented in the current working tree after the first live DrMorses.TV failed upload: Drime control requests now allow a longer timeout, failed upload records preserve safe requeue context, administrators can retry readable failed files from the status UI, and local deletion waits for every WPvivid-listed split part before cleaning up the local set.
+
+### WPvivid Split Backup E2E Rehearsal
+
+Status: complete on `plugin-tester.local` as of 2026-06-27.
+
+Validated:
+
+- WPvivid generated a real full-site manual backup with split packaging enabled temporarily.
+- Completed backup ID: `wpvivid-83ecc6db96748`.
+- WPvivid registered a successful `backup_all` set containing five listed files:
+  - `plugin-tester.local_wpvivid-83ecc6db96748_2026-06-26-21-59_backup_all.part001.zip`
+  - `plugin-tester.local_wpvivid-83ecc6db96748_2026-06-26-21-59_backup_all.part002.zip`
+  - `plugin-tester.local_wpvivid-83ecc6db96748_2026-06-26-21-59_backup_all.part003.zip`
+  - `plugin-tester.local_wpvivid-83ecc6db96748_2026-06-26-21-59_backup_all.part004.zip`
+  - `plugin-tester.local_wpvivid-83ecc6db96748_2026-06-26-21-59_backup_all.part005.zip`
+- The plugin scanner held the new files on the first stability pass, then queued the five stable split parts on the next scan.
+- The plugin uploaded all five split parts through the normal WordPress admin `Upload Next Queued Backup` flow.
+- Final plugin state after the rehearsal: queue count `0`, failed count `0`, active upload state empty, and all five split parts present in the uploaded registry.
+- Temporary test changes were restored after validation: WPvivid split size returned to `200`, current plugin settings returned to the accepted baseline, and the temporary LocalWP admin password hash was restored.
+
+Follow-up:
+
+- Legacy pre-rename Drime settings migration is intentionally out of scope. Existing sites that used the old WPvivid-specific plugin line should be treated as fresh installs of Alynt Drime Backups Uploader: configure Drime credentials, workspace, destination folder, relative path, scanning, and automation settings manually, then run connection and upload checks.
+- No admin notice is planned for legacy option detection because manual reconfiguration is the accepted upgrade path and avoids carrying over stale or ambiguous values such as `workspace_id = 0`.
+- The Drime workspace picker returned team workspaces `4442` (`Kitty`) and `4886` (`Alynt`) for the saved token. The successful rehearsal used workspace `4886` and temporarily cleared `relative_path` because Drime child-folder listing for the intended relative path returned a transient `504` from `/folders?workspaceId=4886`. Source hardening is now implemented: selected-base relative-path uploads fall back from searched child-folder lookup to the full child-folder list for transient Drime server errors, then fall back to Drime's broader user folder tree by parent ID before creating a folder. LocalWP runtime verification on `plugin-tester.local` confirmed the uploader reused the existing `/plugin-tester.local` folder and cached parent ID `762160507` after the relative-path cache was cleared.
 
 ### Feature Slice: v0.5.1 Multipart Failure Recovery
 

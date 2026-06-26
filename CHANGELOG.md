@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-06-27
+
+### Changed
+
+- Added resilient fallbacks for selected-base relative-path uploads: if Drime's searched child-folder lookup returns a transient server error, the uploader retries with the full child-folder list; if child listing still misses an existing folder, the uploader checks Drime's broader user folder tree by parent ID before creating a folder.
+
+### Validation
+
+- Recorded LocalWP WPvivid split-backup E2E evidence: a real WPvivid-generated five-part full-site backup scanned, queued, and uploaded successfully through the plugin admin flow.
+- Verified selected-base relative-path upload resolution on `plugin-tester.local` after clearing the cached parent folder ID; the runtime upload reused the existing `/plugin-tester.local` folder and cached parent ID `762160507`.
+
 ## [0.6.0] - 2026-06-22
 
 ### Changed

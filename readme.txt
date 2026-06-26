@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,10 @@ No public custom actions or filters are exposed.
 
 = Unreleased =
 
+= 0.6.1 =
+* Improved selected-base relative-path uploads so transient Drime child-folder lookup failures fall back to broader folder-tree matching before creating missing folders.
+* Verified WPvivid split-backup upload behavior and selected-base relative-path upload resolution on `plugin-tester.local`.
+
 = 0.6.0 =
 * Changed Drime multipart chunk-size validation to allow values from 5 MB through 256 MB while keeping the conservative recommendation unchanged.
 * Added a memory guard so oversized multipart chunk settings fail gracefully under constrained PHP memory.
@@ -107,6 +111,9 @@ No public custom actions or filters are exposed.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.6.1 =
+Improves Drime relative-path destination resolution for selected base folders. No breaking changes.
 
 = 0.6.0 =
 Allows larger Drime multipart chunk sizes with a PHP memory guard. Keep 32 MB unless larger chunks have been validated in the target environment.

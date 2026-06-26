@@ -40,7 +40,7 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 		$hash      = (string) $settings['parent_folder_hash'];
 
 		foreach ( $this->upload_relative_segments( (string) $settings['relative_path'] ) as $segment ) {
-			$folder = $this->find_upload_child_folder( absint( $settings['workspace_id'] ), $hash, $segment );
+			$folder = $this->find_upload_child_folder( absint( $settings['workspace_id'] ), $parent_id, $hash, $segment );
 			if ( is_wp_error( $folder ) ) {
 				return $folder;
 			}
@@ -82,12 +82,36 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 	 * Finds an existing child folder under a parent hash.
 	 *
 	 * @param int    $workspace_id Workspace ID.
+	 * @param int    $parent_id Parent folder ID.
 	 * @param string $parent_hash Parent folder hash.
 	 * @param string $name Folder name.
 	 * @return array{id:int,hash:string}|array{}|WP_Error
 	 */
-	private function find_upload_child_folder( $workspace_id, $parent_hash, $name ) {
+	private function find_upload_child_folder( $workspace_id, $parent_id, $parent_hash, $name ) {
 		$response = $this->client->list_folder_entries( $workspace_id, $parent_hash, 1, $name );
+		if ( is_wp_error( $response ) ) {
+			if ( ! $this->is_transient_folder_lookup_error( $response ) ) {
+				return $response;
+			}
+
+			$this->logger->event(
+				'upload',
+				'warning',
+				'folder_search_lookup_failed',
+				'Drime folder search lookup failed; retrying with the full child folder list.',
+				array(
+					'folder' => $name,
+					'reason' => $response->get_error_message(),
+				)
+			);
+		} else {
+			$folder = $this->find_upload_child_folder_in_response( $response, $name );
+			if ( ! empty( $folder ) ) {
+				return $folder;
+			}
+		}
+
+		$response = $this->client->list_folder_entries( $workspace_id, $parent_hash, 1, '' );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -97,12 +121,20 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 			return $folder;
 		}
 
-		$response = $this->client->list_folder_entries( $workspace_id, $parent_hash, 1, '' );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
+		return $this->find_upload_child_folder_in_user_tree( $workspace_id, $parent_id, $name );
+	}
 
-		return $this->find_upload_child_folder_in_response( $response, $name );
+	/**
+	 * Returns whether a child-folder search error should fall back to full listing.
+	 *
+	 * @param WP_Error $error Error.
+	 * @return bool
+	 */
+	private function is_transient_folder_lookup_error( WP_Error $error ) {
+		$data   = $error->get_error_data();
+		$status = is_array( $data ) && isset( $data['status'] ) ? absint( $data['status'] ) : 0;
+
+		return in_array( $status, array( 500, 502, 503, 504 ), true );
 	}
 
 	/**
@@ -120,6 +152,53 @@ trait Alynt_Drime_WPvivid_Uploader_Uploader_Destination {
 
 			$folder = $this->upload_folder_from_item( $item );
 			if ( ! empty( $folder ) ) {
+				return $folder;
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Finds a named child folder in Drime's broader user folder tree.
+	 *
+	 * @param int    $workspace_id Workspace ID.
+	 * @param int    $parent_id Parent folder ID.
+	 * @param string $name Folder name.
+	 * @return array{id:int,hash:string}|array{}|WP_Error
+	 */
+	private function find_upload_child_folder_in_user_tree( $workspace_id, $parent_id, $name ) {
+		$parent_id = absint( $parent_id );
+		if ( $parent_id <= 0 ) {
+			return array();
+		}
+
+		$response = $this->client->list_user_folders( $workspace_id );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		foreach ( $this->upload_folder_items( $response ) as $item ) {
+			if (
+				! is_array( $item )
+				|| absint( isset( $item['parent_id'] ) ? $item['parent_id'] : 0 ) !== $parent_id
+				|| strtolower( (string) $item['name'] ) !== strtolower( $name )
+			) {
+				continue;
+			}
+
+			$folder = $this->upload_folder_from_item( $item );
+			if ( ! empty( $folder ) ) {
+				$this->logger->event(
+					'upload',
+					'info',
+					'folder_tree_lookup_matched',
+					'Drime folder tree lookup matched an existing relative-path folder.',
+					array(
+						'folder' => $name,
+					)
+				);
+
 				return $folder;
 			}
 		}

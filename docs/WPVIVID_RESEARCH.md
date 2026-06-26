@@ -104,7 +104,20 @@ Validated behavior:
 - Missing listed split part: the first scan captured the stability snapshot and queued zero files; the second scan still queued zero files because the listed set was incomplete.
 - Cleanup verification after the fixture restored plugin state: queue count `0`, failed count `0`, active upload empty, uploaded registry count `1`, cached Drime parent folder ID still present, split-fixture scan snapshot absent, and the temporary fixture directory removed.
 
+### Backup Engine Split E2E
+
+A full LocalWP validation was run on `plugin-tester.local` with a WPvivid-generated manual full-site backup. Temporary WPvivid split settings produced backup ID `wpvivid-83ecc6db96748` with five `backup_all.partNNN.zip` files.
+
+Validated behavior:
+
+- The first plugin scan captured stability snapshots for the five new split parts.
+- The next scan queued all five stable split parts.
+- All five split parts uploaded successfully to Drime through the normal WordPress admin upload action.
+- Final plugin state after validation was queue count `0`, failed count `0`, active upload empty, with all five split parts present in the uploaded registry.
+- Temporary WPvivid/plugin settings and the LocalWP login hash were restored after validation.
+
 ## Boundaries Not Yet Verified
 
-- Split archive completeness has been validated against a WPvivid-list-backed runtime fixture, but not against a split backup generated end-to-end by WPvivid's backup engine.
+- Split archive completeness has been validated against both a WPvivid-list-backed runtime fixture and a WPvivid backup-engine-generated split backup on `plugin-tester.local`.
 - Pro filtered backup-list names beyond `wpvivid_backup_list` were not enumerated at runtime.
+- Drime child-folder lookup for the intended relative path hit a transient `504` during the split E2E; upload validation succeeded by temporarily uploading directly to the configured parent folder after selecting workspace `4886`. Source hardening now falls back from searched child-folder lookup to full child-folder listing for transient Drime server errors, then to Drime's broader user folder tree by parent ID before creating a folder. A later `plugin-tester.local` runtime upload verified the selected-base relative-path flow with cached parent ID `762160507`.

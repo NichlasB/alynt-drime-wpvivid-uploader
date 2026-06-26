@@ -171,6 +171,71 @@ class UploaderTest extends TestCase {
 		$this->assertSame( 654, $client->create_s3_parent_id );
 	}
 
+	public function test_selected_base_folder_falls_back_when_search_lookup_times_out() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_id']   = '321';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_hash'] = 'basehash';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path']      = '/site1.com';
+
+		$client                            = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$client->folder_search_errors[]    = 'site1.com';
+		$client->children['basehash']       = array(
+			array(
+				'id'   => 777,
+				'hash' => 'existinghash',
+				'name' => 'site1.com',
+				'type' => 'folder',
+			),
+		);
+		$uploader                          = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( array(), $client->created_folders );
+		$this->assertSame( 777, $client->validate_parent_id );
+		$this->assertSame( 777, $client->create_multipart_parent_id );
+		$this->assertSame( 777, $client->create_s3_parent_id );
+	}
+
+	public function test_selected_base_folder_falls_back_to_user_folder_tree_before_creating() {
+		$options = $this->base_options();
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_id']   = '321';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['parent_folder_hash'] = 'basehash';
+		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path']      = '/site1.com';
+
+		$client                      = new Alynt_Drime_WPvivid_Uploader_Test_Drime_Client( new Alynt_Drime_WPvivid_Uploader_Settings() );
+		$client->children['basehash'] = array(
+			array(
+				'id'        => 111,
+				'hash'      => 'tophash',
+				'name'      => 'General',
+				'parent_id' => 0,
+				'type'      => 'folder',
+			),
+		);
+		$client->user_folders         = array(
+			'data' => array(
+				array(
+					'id'        => 888,
+					'hash'      => 'treehash',
+					'name'      => 'site1.com',
+					'parent_id' => 321,
+					'type'      => 'folder',
+				),
+			),
+		);
+		$uploader                     = $this->uploader_with_options( $options, $client );
+
+		$result = $uploader->upload_next();
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( array(), $client->created_folders );
+		$this->assertSame( 888, $client->validate_parent_id );
+		$this->assertSame( 888, $client->create_multipart_parent_id );
+		$this->assertSame( 888, $client->create_s3_parent_id );
+	}
+
 	public function test_successful_relative_path_upload_remembers_drime_parent_id() {
 		$options = $this->base_options();
 		$options[ Alynt_Drime_WPvivid_Uploader_Settings::OPTION_NAME ]['relative_path'] = '/Backups/Test Site';
@@ -580,6 +645,8 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 	public $abort_result           = array( 'status' => 'success' );
 	public $children               = array();
 	public $created_folders        = array();
+	public $folder_search_errors   = array();
+	public $user_folders           = array( 'data' => array() );
 
 	public function test_connection() {
 		return $this->connection_result;
@@ -661,11 +728,21 @@ class Alynt_Drime_WPvivid_Uploader_Test_Drime_Client extends Alynt_Drime_WPvivid
 	}
 
 	public function list_folder_entries( $workspace_id, $folder_hash, $page = 1, $query = '' ) {
-		unset( $workspace_id, $page, $query );
+		unset( $workspace_id, $page );
+
+		if ( '' !== $query && in_array( $query, $this->folder_search_errors, true ) ) {
+			return new WP_Error( 'alynt_drime_api_error', 'Gateway timeout.', array( 'status' => 504 ) );
+		}
 
 		return array(
 			'data' => isset( $this->children[ $folder_hash ] ) ? $this->children[ $folder_hash ] : array(),
 		);
+	}
+
+	public function list_user_folders( $workspace_id = 0 ) {
+		unset( $workspace_id );
+
+		return $this->user_folders;
 	}
 
 	public function create_folder( $workspace_id, $name, $parent_id = 0 ) {
