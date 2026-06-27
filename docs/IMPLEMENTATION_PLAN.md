@@ -210,19 +210,17 @@ This section is the current source for what remains after `v0.6.2` was accepted 
 
 ### 1. Drime Workspace Picker Closeout
 
-Status: shipped in the `0.5.0` release line and present in the current stable release. The remaining work is closeout bookkeeping and any missing verification evidence, not new feature design.
+Status: complete. Shipped in the `0.5.0` release line and present in the current stable release.
 
-Needed:
+Closeout evidence recorded 2026-06-27:
 
-- Confirm whether the feature-stage review, documentation sync, and release-verification notes for the workspace picker were fully recorded.
-- If not already evidenced, run or record the applicable feature-stage review checks for the workspace picker:
-  - Feature Light Review.
-  - Feature Bloat And Structure Review.
-  - Feature UI/UX Implementation Review.
-  - Feature Security Review.
-  - Documentation Sync Audit.
-- Confirm the saved-token safety expectations for the workspace AJAX response are covered by tests or runtime evidence.
-- Update this plan after the closeout so the workspace picker no longer appears pending.
+- Feature Light Review: passed as a source-evidence review of the `v0.5.0` workspace-picker surface. The feature touches admin UI, AJAX, settings persistence, and the Drime `/me/workspaces` API; it follows the existing settings/admin-page architecture and no significant non-security issues were found.
+- Feature Bloat And Structure Review: passed for the workspace-picker surface. The explicit historical boundary was `v0.4.0` to `v0.5.0`; the helper was run with `-BaseRef v0.4.0`, then the tag diff was sanity-checked against `v0.5.0`. Workspace-specific files are within feature-stage thresholds: `includes/class-workspace-browser.php` is `123` total lines, `assets/admin-workspaces.js` and `assets/src/admin/workspaces.js` are `147` total lines each, `tests/WorkspaceBrowserTest.php` is `91` total lines, and `tests/Support/WorkspaceBrowserClient.php` is `33` total lines. Oversized orchestration/test files reported by the current-state measurement predate or outlive the workspace picker and remain pre-release structure-review territory, not workspace closeout blockers.
+- Feature UI/UX Implementation Review: passed by source review against the design-system guide. The workspace picker uses the existing WordPress settings table, a native button/select/input pattern, visible loading state, `aria-busy`, spinner state, and an `aria-live` status region. It clears selected base-folder metadata when the workspace changes and tells the administrator to save settings.
+- Feature Security Review: passed. The workspace AJAX action uses the shared `verify_ajax_action()` gate, which requires `manage_options` and `check_ajax_referer( 'alynt_drime_wpvivid_folder_browser', 'nonce', false )`; settings sanitization clears stale folder metadata on workspace changes; workspace responses are normalized through `Alynt_Drime_WPvivid_Uploader_Workspace_Browser` and do not return `api_token`.
+- Documentation Sync Audit: passed for the workspace picker. `README.md`, `readme.txt`, `docs/SETTINGS.md`, and `CHANGELOG.md` document workspace loading, workspace ID behavior, and base-folder clearing when the workspace changes.
+- Release verification: current source validation passed with `npm.cmd test` (`86` tests, `238` assertions), `npm.cmd run lint` (`43 / 43` PHPCS files), and `npm.cmd run build`.
+- Novamira MCP availability was confirmed on `plugin-tester.local`; no LocalWP state changes or live-site operations were needed for this documentation closeout.
 
 ### 2. Folder Browser Runtime AJAX Verification
 
