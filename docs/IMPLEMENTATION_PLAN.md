@@ -241,11 +241,14 @@ Runtime evidence recorded 2026-06-27 on `plugin-tester.local` with Novamira MCP:
 
 ### 3. Continuing E2E And Failure Hardening
 
-Status: mostly complete; remaining items are intentionally narrow, risky, or external-service-dependent.
+Status: mostly complete; duplicate handling with cached concrete parent IDs is freshly verified. Remaining items are intentionally narrow, risky, or external-service-dependent.
 
-Needed:
+Evidence recorded 2026-06-27:
 
-- Keep duplicate-handling evidence current for Drime uploads that use cached concrete parent folder IDs.
+- Duplicate-validation evidence is current for Drime uploads that use cached concrete parent folder IDs. On `plugin-tester.local`, the saved base folder was `759829073`, the saved relative path was `/plugin-tester.local`, and the registry cache resolved the final concrete parent folder to `762160507`. A non-uploading Drime `/uploads/validate` probe against existing uploaded file `alynt-chunk-validation-64mb-20260622-190700.zip` returned one duplicate under parent `762160507`; a generated unique probe name under the same parent returned zero duplicates. The local plugin option fingerprint was unchanged before and after the probe.
+
+Still deferred:
+
 - Treat relative-path-only duplicate-validation variants as unreliable unless Drime API behavior changes or new evidence appears.
 - Do not force live Drime rate-limit induction unless there is a specific need and explicit approval.
 - Keep broader arbitrary-folder remote cleanup out of scope for the current retention feature.
@@ -704,9 +707,9 @@ Verified:
 - Earlier live Drime upload test state verified the queue empty, uploaded registry count `1`, failed registry count `0`, active upload state empty, diagnostics enabled at debug level, minimum file age set to 60 seconds, and the resolved Drime parent folder ID cached for the configured relative path. Latest packaged install validation is recorded separately below.
 - Early packaged zip validation passed after the pre-release closeout for `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip`: it contained 33 production files, had the expected top-level plugin folder and main plugin file, used forward-slash zip entries, excluded dev/tooling/handoff/generated files including `assets/dist`, installed over the LocalWP runtime copy through WordPress's `Plugin_Upgrader` with `overwrite_package=true`, activated successfully, rendered the admin page in a WordPress runtime probe, preserved plugin options, and left queue count `0`, failed count `0`, uploaded registry count `0`, and active upload empty.
 
-Pending:
+Follow-up edge cases:
 
-- Duplicate handling against existing Drime files is partially verified. Local registry prevention is verified, and Drime remote duplicate-skip behavior was validated using a copied backup with the same basename and the cached top-level `parentId`; relative-path-only request variants remain unreliable.
+- Duplicate handling against existing Drime files is current for cached concrete parent-folder IDs. Local registry prevention is verified, earlier remote duplicate-skip behavior was validated using a copied backup with the same basename and cached top-level `parentId`, and the 2026-06-27 non-uploading runtime probe confirmed Drime duplicate validation returns one duplicate for an existing uploaded name under cached concrete parent `762160507` and zero duplicates for a generated unique name under that same parent. Relative-path-only request variants remain unreliable.
 - Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains untested to avoid abusive API traffic.
 - Live Remote Drime Retention cleanup has been verified once against the approved leftover E2E test upload; broader arbitrary-folder cleanup is intentionally out of scope for this feature.
 
