@@ -224,13 +224,20 @@ Closeout evidence recorded 2026-06-27:
 
 ### 2. Folder Browser Runtime AJAX Verification
 
-Status: shipped in the `0.4.0` release line and present in the current stable release. Most source and LocalWP/Drime behavior is verified; the detailed checklist still calls out a couple of runtime-security verification gaps.
+Status: complete. Shipped in the `0.4.0` release line and present in the current stable release.
 
-Needed:
+Runtime evidence recorded 2026-06-27 on `plugin-tester.local` with Novamira MCP:
 
-- Confirm AJAX handlers reject missing/invalid nonces and unauthorized users, either with focused tests or a runtime probe.
-- Inspect the folder-browser and destination-preview AJAX responses in a WordPress runtime to confirm they do not expose the saved Drime API token.
-- Record the evidence in this plan and, if a small missing test is justified, add it in a future patch release.
+- The installed runtime is Alynt Drime WPvivid Uploader `0.6.2` with a saved Drime token present.
+- `alynt_drime_wpvivid_list_folders` rejected an unauthenticated/unauthorized runtime dispatch with `success=false` and the permission message.
+- `alynt_drime_wpvivid_list_folders` rejected an administrator dispatch with an invalid nonce with `success=false` and the nonce-verification message.
+- `alynt_drime_wpvivid_list_folders` accepted an administrator dispatch with a valid nonce and returned `success=true` with `folders` and `page` keys.
+- `alynt_drime_wpvivid_preview_destination` rejected an unauthenticated/unauthorized runtime dispatch with `success=false` and the permission message.
+- `alynt_drime_wpvivid_preview_destination` rejected an administrator dispatch with an invalid nonce with `success=false` and the nonce-verification message.
+- `alynt_drime_wpvivid_preview_destination` accepted an administrator dispatch with a valid nonce and returned a sanitized Drime error for the currently saved destination (`No query results for model [App\Folder] 759829073`) because the saved base folder could not be resolved during the probe.
+- All six captured JSON responses were inspected in-process against the saved Drime token; none contained the token.
+- The successful folder-list response and the destination-preview response were also checked for common sensitive markers such as `api_token`, `authorization`, `bearer`, `password`, `secret`, and `presigned`; none were found.
+- No LocalWP settings, database rows, files, or live-site resources were changed during this verification.
 
 ### 3. Continuing E2E And Failure Hardening
 
