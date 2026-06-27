@@ -62,7 +62,7 @@ Follow-up:
 
 ### Feature Slice: v0.5.1 Multipart Failure Recovery
 
-Status: implemented in source; pending final feature-stage/release workflow closeout.
+Status: implemented, released, and stable in the `0.5.1` and later release line. Kept here as incident-response evidence.
 
 #### Trigger
 
@@ -204,7 +204,58 @@ Use the LocalWP profile:
 
 Before installing or testing on this LocalWP site, follow the Site Operations confirmation gate. Novamira MCP is available and reports both `WPvivid Backup Plugin` and `WPvivid Plugins Pro` active.
 
-## Remaining Implementation Work
+## Active Roadmap
+
+This section is the current source for what remains after `v0.6.2` was accepted as stable. The older detailed implementation notes below are kept as a completion ledger, not as the active to-do list.
+
+### 1. Drime Workspace Picker Closeout
+
+Status: shipped in the `0.5.0` release line and present in the current stable release. The remaining work is closeout bookkeeping and any missing verification evidence, not new feature design.
+
+Needed:
+
+- Confirm whether the feature-stage review, documentation sync, and release-verification notes for the workspace picker were fully recorded.
+- If not already evidenced, run or record the applicable feature-stage review checks for the workspace picker:
+  - Feature Light Review.
+  - Feature Bloat And Structure Review.
+  - Feature UI/UX Implementation Review.
+  - Feature Security Review.
+  - Documentation Sync Audit.
+- Confirm the saved-token safety expectations for the workspace AJAX response are covered by tests or runtime evidence.
+- Update this plan after the closeout so the workspace picker no longer appears pending.
+
+### 2. Folder Browser Runtime AJAX Verification
+
+Status: shipped in the `0.4.0` release line and present in the current stable release. Most source and LocalWP/Drime behavior is verified; the detailed checklist still calls out a couple of runtime-security verification gaps.
+
+Needed:
+
+- Confirm AJAX handlers reject missing/invalid nonces and unauthorized users, either with focused tests or a runtime probe.
+- Inspect the folder-browser and destination-preview AJAX responses in a WordPress runtime to confirm they do not expose the saved Drime API token.
+- Record the evidence in this plan and, if a small missing test is justified, add it in a future patch release.
+
+### 3. Continuing E2E And Failure Hardening
+
+Status: mostly complete; remaining items are intentionally narrow, risky, or external-service-dependent.
+
+Needed:
+
+- Keep duplicate-handling evidence current for Drime uploads that use cached concrete parent folder IDs.
+- Treat relative-path-only duplicate-validation variants as unreliable unless Drime API behavior changes or new evidence appears.
+- Do not force live Drime rate-limit induction unless there is a specific need and explicit approval.
+- Keep broader arbitrary-folder remote cleanup out of scope for the current retention feature.
+
+### 4. Plan Hygiene
+
+Needed:
+
+- Keep this active roadmap short and decision-oriented.
+- Move completed slice detail into the completion ledger below instead of leaving it as active work.
+- Keep `CHANGELOG.md`, `readme.txt`, `README.md`, `docs/SETTINGS.md`, `docs/DRIME_API_RESEARCH.md`, and the toolkit pre-release checklist aligned whenever a new release changes behavior.
+
+## Completed Implementation Ledger
+
+The following sections preserve the original implementation roadmap and evidence. They are not the current active roadmap unless a subsection explicitly says it is still pending.
 
 ### 1. Source Control Baseline
 
@@ -356,7 +407,7 @@ Open decisions before implementation:
 
 ### Feature Slice: Failed Upload Email Notifications
 
-Status: implemented in source. LocalWP runtime mail-stack verification and post-feature review workflows are pending.
+Status: implemented, runtime mail-stack verification complete, post-feature review workflows complete, and the path-redaction follow-up is released in `0.6.2`.
 
 Goal:
 
@@ -542,7 +593,7 @@ Implementation decisions:
 
 ### Feature Slice: Drime Workspace Picker
 
-Status: implemented in source. Feature-stage review, documentation sync, and release verification are pending for this slice.
+Status: shipped in the `0.5.0` release line and present in the current stable release. Remaining closeout bookkeeping is tracked in the Active Roadmap.
 
 Goal:
 
@@ -577,7 +628,7 @@ Implementation plan:
   - response normalization coverage.
   - settings coverage that changing workspaces clears stale parent-folder metadata.
 
-Release workflow after successful implementation and E2E:
+Historical release workflow after successful implementation and E2E:
 
 - Run the applicable feature-stage prompts in this order:
   - `FEATURE_LIGHT_REVIEW_PROMPT.md`.
@@ -628,7 +679,7 @@ Verification:
 
 ### 9. LocalWP Install And Integration Test
 
-Status: partially complete on `plugin-tester.local`.
+Status: mostly complete on `plugin-tester.local`; current stable release and updater validation are recorded in Current State. Remaining notes below are follow-up edge cases, not blockers for `0.6.2`.
 
 Verified:
 
@@ -646,7 +697,7 @@ Verified:
 - Queued item includes `wpvivid_backup_list` metadata with `from_list: true`, backup id `wpvivid-0d2ea337c5c5b`, and one listed file.
 - Upload without a Drime token fails safely, leaves active upload state empty, increments attempts to 1, records one failed item, and logs redacted diagnostics.
 - Earlier live Drime upload test state verified the queue empty, uploaded registry count `1`, failed registry count `0`, active upload state empty, diagnostics enabled at debug level, minimum file age set to 60 seconds, and the resolved Drime parent folder ID cached for the configured relative path. Latest packaged install validation is recorded separately below.
-- Packaged zip validation passed after the pre-release closeout: `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip` contains 33 production files, has the expected top-level plugin folder and main plugin file, uses forward-slash zip entries, excludes dev/tooling/handoff/generated files including `assets/dist`, installed over the LocalWP runtime copy through WordPress's `Plugin_Upgrader` with `overwrite_package=true`, activated successfully, rendered the admin page in a WordPress runtime probe, preserved plugin options, and left queue count `0`, failed count `0`, uploaded registry count `0`, and active upload empty.
+- Early packaged zip validation passed after the pre-release closeout for `C:\Users\Captain\Desktop\alynt-drime-wpvivid-uploader-0.1.0.zip`: it contained 33 production files, had the expected top-level plugin folder and main plugin file, used forward-slash zip entries, excluded dev/tooling/handoff/generated files including `assets/dist`, installed over the LocalWP runtime copy through WordPress's `Plugin_Upgrader` with `overwrite_package=true`, activated successfully, rendered the admin page in a WordPress runtime probe, preserved plugin options, and left queue count `0`, failed count `0`, uploaded registry count `0`, and active upload empty.
 
 Pending:
 
