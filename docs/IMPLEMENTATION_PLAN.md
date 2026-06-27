@@ -234,6 +234,63 @@ Needed:
 - Move completed slice detail into the completion ledger below instead of leaving it as active work. Completed for the 2026-06-27 hygiene pass.
 - Keep `CHANGELOG.md`, `readme.txt`, `README.md`, `docs/SETTINGS.md`, `docs/DRIME_API_RESEARCH.md`, and the toolkit pre-release checklist aligned whenever a new release changes behavior.
 
+## Future Feature Backlog
+
+These are uncommitted candidate slices. They are intentionally not part of the active roadmap until one is selected, planned, and approved as the next implementation target.
+
+### Restore Flow Documentation
+
+Purpose:
+
+- Create an operator runbook for restoring backups that have been uploaded to Drime.
+- Cover same-site recovery, fresh/staging-site recovery, database-only restores, files-only restores, and full-site restores.
+- Keep the plugin out of destructive restore execution unless a later feature explicitly plans a safe restore assistant.
+
+Notes:
+
+- Treat restore docs as the recommended next planning slice because backup confidence depends on knowing how to recover.
+- Include WPvivid-generated backups, server-generated backup packages, and GridPane-specific operator notes where verified.
+- Include validation steps after restore: login, permalinks, media/uploads, cron, forms, cache, security plugin state, and backup automation state.
+
+### Server-Side Backup Automation Support
+
+Purpose:
+
+- Support a server-generated backup workflow where cron or another server runner creates backup packages outside WPvivid, places them in a known outbox, and the plugin scans/uploads completed packages to Drime.
+- Preserve the Model B boundary: server tooling creates the backup package; the WordPress plugin detects, queues, uploads, reports status, and helps with setup/diagnostics.
+
+Notes:
+
+- Keep plugin-side setup assistant read-only or narrowly scoped at first: show expected outbox path, folder readability, site UUID, scan state, runner status, and suggested commands.
+- Require stable-file detection, minimum file age, and incomplete-package safeguards before queueing server-produced packages.
+- Plan GridPane VPS/Nginx assumptions from verified server investigation rather than generic host assumptions.
+
+### Central Dashboard Readiness
+
+Purpose:
+
+- Prepare this plugin to report status to a future separate control-center plugin without building that dashboard inside this plugin.
+- Track whether the current site has queued, uploaded, failed, active, and stale backup/upload states in a shape that another plugin can consume.
+
+Notes:
+
+- Candidate surfaces could include a read-only status endpoint, signed site identity, explicit opt-in, redacted health payloads, and last-event timestamps.
+- Do not send Drime tokens, presigned URLs, absolute server paths, raw request bodies, file contents, or stack traces.
+- Treat the central dashboard itself as a separate project/plugin.
+
+### Backup Producer Architecture
+
+Purpose:
+
+- Keep the upload pipeline extensible so future backup producers can be added without rewriting queue, registry, Drime upload, diagnostics, and admin status behavior.
+- Treat WPvivid as the first producer rather than the only long-term producer.
+
+Notes:
+
+- Do not spend implementation energy on specific third-party backup plugin adapters until a producer is selected.
+- A future slice should define a small producer contract for package discovery, completeness checks, backup-set metadata, display labels, and restore notes.
+- Server-side outbox support can become the first non-WPvivid producer if selected before any third-party plugin adapter.
+
 ## Completed Implementation Ledger
 
 The following sections preserve the original implementation roadmap and evidence. They are not the current active roadmap unless a subsection explicitly says it is still pending.
