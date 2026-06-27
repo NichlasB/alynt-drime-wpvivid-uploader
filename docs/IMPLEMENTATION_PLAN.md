@@ -412,11 +412,11 @@ Tests and verification:
   - confirmed diagnostics recorded `failure_email_sent` and `failure_email_skipped` during the run;
   - confirmed SureMail log ID `13` recorded the simulated email without real delivery;
   - confirmed the email body used the backup basename only and redacted URL/path details from the failure reason.
-- Run feature-stage workflows after implementation:
-  - `FEATURE_LIGHT_REVIEW_PROMPT.md`
-  - `FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md` if changed PHP/JS/CSS warrants it
-  - `FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md`
-  - `FEATURE_SECURITY_REVIEW_PROMPT.md`
+- Run feature-stage workflows after implementation. Done:
+  - `FEATURE_LIGHT_REVIEW_PROMPT.md` passed with one security/privacy follow-up.
+  - `FEATURE_BLOAT_AND_STRUCTURE_REVIEW_PROMPT.md` Phase 1 measurement used the exact feature commit boundary; no feature-stage cleanup or split was needed. Existing oversized orchestration files remain pre-release structure-review territory.
+  - `FEATURE_UI_UX_IMPLEMENTATION_PROMPT.md` passed for the settings fields, test-email action, and admin notices.
+  - `FEATURE_SECURITY_REVIEW_PROMPT.md` found and fixed Unix-style absolute path leakage in failed-upload email reasons; regression coverage added.
 
 Open decisions before implementation:
 

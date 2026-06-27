@@ -66,7 +66,7 @@ class FailureNotifierTest extends TestCase {
 		$mail     = array();
 		$notifier = $this->notifier_with_options( $options, $mail, true );
 
-		$sent = $notifier->notify_failure( $this->queue_item(), 'manual_upload_failed', 'Failed at C:\\private\\backup.zip and https://signed.example.test/upload', 2 );
+		$sent = $notifier->notify_failure( $this->queue_item(), 'manual_upload_failed', 'Failed at C:\\private\\backup.zip, /var/www/site/private/backup.zip, and https://signed.example.test/upload', 2 );
 
 		$this->assertTrue( $sent );
 		$this->assertCount( 1, $mail );
@@ -76,6 +76,7 @@ class FailureNotifierTest extends TestCase {
 		$this->assertStringContainsString( 'Failure status: Manual Upload Failed', $mail[0]['message'] );
 		$this->assertStringContainsString( 'Attempts: 2', $mail[0]['message'] );
 		$this->assertStringNotContainsString( 'C:\\private', $mail[0]['message'] );
+		$this->assertStringNotContainsString( '/var/www/site/private', $mail[0]['message'] );
 		$this->assertStringNotContainsString( 'https://signed.example.test', $mail[0]['message'] );
 	}
 

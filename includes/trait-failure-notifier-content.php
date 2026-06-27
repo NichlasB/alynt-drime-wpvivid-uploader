@@ -149,6 +149,7 @@ trait Alynt_Drime_WPvivid_Uploader_Failure_Notifier_Content {
 		$reason = $this->plain_text( $reason );
 		$reason = preg_replace( '#https?://\S+#i', '[redacted-url]', $reason );
 		$reason = preg_replace( '/[A-Za-z]:[\\\\\/][^\s]+/', '[redacted-path]', (string) $reason );
+		$reason = preg_replace( '#(?<!:)/(?:[A-Za-z0-9._~@+-]+/)+[A-Za-z0-9._~@+-]+#', '[redacted-path]', (string) $reason );
 
 		return strlen( (string) $reason ) > 300 ? substr( (string) $reason, 0, 300 ) . '...' : (string) $reason;
 	}

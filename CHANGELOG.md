@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Redact Unix-style absolute paths from failed-upload email reasons so Linux/GridPane server paths are not exposed in notification emails.
+
 ## [0.6.1] - 2026-06-27
 
 ### Changed
