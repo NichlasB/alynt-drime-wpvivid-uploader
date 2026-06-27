@@ -60,6 +60,10 @@ The settings screen controls:
 
 See [docs/SETTINGS.md](docs/SETTINGS.md) for the full option schema.
 
+## Restore Guidance
+
+The plugin uploads and tracks backup files; it does not restore files or databases. See [docs/RESTORE_FLOW.md](docs/RESTORE_FLOW.md) for the operator runbook covering WPvivid restores, future server-generated backup packages, staging-first recovery, same-site emergency recovery, and post-restore validation.
+
 ## Diagnostics
 
 Diagnostics are disabled by default. When enabled, the plugin stores a bounded event log in WordPress options and exposes a health summary, recent events table, JSON export, and clear action to administrators.
@@ -99,6 +103,10 @@ Use **Load Drime Workspaces** to retrieve workspaces available to the saved API 
 ### Does this upload incomplete WPvivid files?
 
 The scanner waits until files are old enough and their size is stable across scans. WPvivid-listed split sets are queued only when every listed part is present and stable.
+
+### Does this restore backups from Drime?
+
+No. The plugin does not restore files or databases. Download the uploaded backup from Drime and restore it with WPvivid, the server backup tool, WP-CLI, or another tested restore process. See [docs/RESTORE_FLOW.md](docs/RESTORE_FLOW.md).
 
 ### Does this expose developer hooks?
 

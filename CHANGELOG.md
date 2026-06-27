@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added `docs/RESTORE_FLOW.md`, an operator restore runbook for backups uploaded to Drime.
+
 ## [0.6.2] - 2026-06-27
 
 ### Fixed

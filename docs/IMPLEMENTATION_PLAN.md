@@ -22,6 +22,7 @@ Updated: 2026-06-27
 - Pre-release Documentation Review workflow is complete. Runtime PHPDoc now includes `@since 0.1.0` coverage for class/trait/public-method declarations, README/readme/changelog/settings docs are current, and `docs/HOOKS.md` documents that version `0.1.0` exposes no public custom hooks.
 - Pre-release Security Audit workflow is complete. No critical, high, medium, or low blocking issues were found; admin actions are capability/nonce-gated, outputs are escaped, diagnostics are redacted, direct database SQL is absent, dangerous-function scans found only the intentional Drime cURL upload path, and Composer/npm audits are clean.
 - Release validation/package refresh is complete for the current source. Final lint, tests, build, npm audit, Composer audit, PHP syntax sweep, distribution zip audit, LocalWP packaged install, and admin render probe passed.
+- Restore flow documentation is now captured in `docs/RESTORE_FLOW.md`; the plugin remains upload-only and does not execute destructive restore actions.
 - Drime API schema documentation pass is complete against current public docs, and live-token checks have verified connection, duplicate-validation response shape, available-name response key, direct small-file upload, and the parent-ID duplicate-validation workaround for relative-path uploads.
 - WPvivid source verification is complete against installed Free/Pro source and sanitized runtime options; a real single-file database backup fixture has been tested, a WPvivid-list-backed split-part fixture has validated `.part001.zip` / `.part002.zip` scanner gating, and a full WPvivid backup-engine-generated 5-part split backup has scanned, queued, and uploaded successfully to Drime from `plugin-tester.local`.
 - Feature security review is complete for the current changed code; multipart signed URLs are validated before upload and diagnostics redacts sensitive substrings in scalar values.
@@ -239,6 +240,8 @@ Needed:
 These are uncommitted candidate slices. They are intentionally not part of the active roadmap until one is selected, planned, and approved as the next implementation target.
 
 ### Restore Flow Documentation
+
+Status: documented in `docs/RESTORE_FLOW.md`. Future restore-assistant behavior remains uncommitted and would require a separate approved feature plan.
 
 Purpose:
 

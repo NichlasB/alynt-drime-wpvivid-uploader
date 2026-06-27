@@ -55,3 +55,7 @@ The plugin reads these WPvivid options and does not write them:
 | `wpvivid_common_setting` | Detects custom local backup folder configuration. |
 | `wpvivid_local_setting` | Detects Free/Pro local backup path and Pro outside-folder mode. |
 | `wpvivid_backup_list` | Reads WPvivid backup-set metadata for complete-set scanning. |
+
+## Restore Operations
+
+The plugin does not restore files or databases and has no destructive restore setting. Restore planning lives in [RESTORE_FLOW.md](RESTORE_FLOW.md), including WPvivid restore handling, future server-generated backup package notes, staging-first recovery, same-site emergency recovery, and post-restore validation.

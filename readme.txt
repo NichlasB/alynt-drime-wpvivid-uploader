@@ -38,6 +38,10 @@ No. Remote retention is disabled by default, runs only from manual admin actions
 
 The scanner waits until files are old enough and their size is stable across scans. WPvivid-listed split sets are queued only when every listed part is present and stable.
 
+= Does this restore backups from Drime? =
+
+No. The plugin does not restore files or databases. Download the uploaded backup from Drime and restore it with WPvivid, the server backup tool, WP-CLI, or another tested restore process. See `docs/RESTORE_FLOW.md` in the plugin package for the operator runbook.
+
 = Does this store diagnostics? =
 
 Diagnostics are disabled by default. When enabled, diagnostics are redacted and stored in a bounded WordPress option.
@@ -65,6 +69,7 @@ No public custom actions or filters are exposed.
 == Changelog ==
 
 = Unreleased =
+* Added `docs/RESTORE_FLOW.md`, an operator restore runbook for backups uploaded to Drime.
 
 = 0.6.2 =
 * Fixed failed-upload email redaction so Unix-style absolute server paths are not exposed in notification reasons.
