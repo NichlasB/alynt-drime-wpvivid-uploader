@@ -115,7 +115,7 @@ Live API checks were run on 2026-06-20 from `plugin-tester.local` using a user-p
 - Live testing found Drime's direct upload path could still create a file when the plugin reached it with an invalid token, so the uploader now blocks every upload behind the JSON token preflight.
 - After that hardening, invalid-token upload retry behavior is verified: the queued item remains queued, attempts increment to `1`, a failed-registry item is recorded with `Unauthenticated.`, active state stays empty, and uploaded registry count does not change.
 - Temporary live Drime test files created during multipart and auth/error testing were moved to trash through `POST /file-entries/delete` with `deleteForever=false`; the real WPvivid test backup entry was not deleted.
-- Remote retention implementation currently relies on that live trash behavior and limits candidates to plugin-owned uploaded-registry records with a stored `fileEntry.id`.
+- Remote retention implementation currently relies on that live trash behavior and limits candidates to plugin-owned uploaded-registry records with a stored `fileEntry.id`; arbitrary-folder cleanup is intentionally out of scope unless planned as a separate feature with stronger ownership safeguards.
 
 ## Still Unverified
 
