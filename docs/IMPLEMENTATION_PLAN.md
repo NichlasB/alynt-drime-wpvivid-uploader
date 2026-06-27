@@ -247,9 +247,12 @@ Evidence recorded 2026-06-27:
 
 - Duplicate-validation evidence is current for Drime uploads that use cached concrete parent folder IDs. On `plugin-tester.local`, the saved base folder was `759829073`, the saved relative path was `/plugin-tester.local`, and the registry cache resolved the final concrete parent folder to `762160507`. A non-uploading Drime `/uploads/validate` probe against existing uploaded file `alynt-chunk-validation-64mb-20260622-190700.zip` returned one duplicate under parent `762160507`; a generated unique probe name under the same parent returned zero duplicates. The local plugin option fingerprint was unchanged before and after the probe.
 
+Accepted hardening decisions:
+
+- Relative-path-only duplicate-validation variants remain documented as unreliable. Current Drime evidence shows duplicate detection is reliable when the resolved concrete destination folder is sent as top-level `parentId`, so the plugin should continue using cached concrete parent folder IDs after relative-path uploads. Do not spend more implementation energy on relative-path-only duplicate detection unless Drime API behavior changes or new evidence appears.
+
 Still deferred:
 
-- Treat relative-path-only duplicate-validation variants as unreliable unless Drime API behavior changes or new evidence appears.
 - Do not force live Drime rate-limit induction unless there is a specific need and explicit approval.
 - Keep broader arbitrary-folder remote cleanup out of scope for the current retention feature.
 
@@ -709,7 +712,7 @@ Verified:
 
 Follow-up edge cases:
 
-- Duplicate handling against existing Drime files is current for cached concrete parent-folder IDs. Local registry prevention is verified, earlier remote duplicate-skip behavior was validated using a copied backup with the same basename and cached top-level `parentId`, and the 2026-06-27 non-uploading runtime probe confirmed Drime duplicate validation returns one duplicate for an existing uploaded name under cached concrete parent `762160507` and zero duplicates for a generated unique name under that same parent. Relative-path-only request variants remain unreliable.
+- Duplicate handling against existing Drime files is current for cached concrete parent-folder IDs. Local registry prevention is verified, earlier remote duplicate-skip behavior was validated using a copied backup with the same basename and cached top-level `parentId`, and the 2026-06-27 non-uploading runtime probe confirmed Drime duplicate validation returns one duplicate for an existing uploaded name under cached concrete parent `762160507` and zero duplicates for a generated unique name under that same parent. Relative-path-only request variants remain unreliable by accepted decision, not an active implementation target.
 - Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains untested to avoid abusive API traffic.
 - Live Remote Drime Retention cleanup has been verified once against the approved leftover E2E test upload; broader arbitrary-folder cleanup is intentionally out of scope for this feature.
 
