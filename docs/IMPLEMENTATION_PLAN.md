@@ -208,46 +208,19 @@ Before installing or testing on this LocalWP site, follow the Site Operations co
 
 This section is the current source for what remains after `v0.6.2` was accepted as stable. The older detailed implementation notes below are kept as a completion ledger, not as the active to-do list.
 
-### 1. Drime Workspace Picker Closeout
+### 1. Current Maintenance Posture
 
-Status: complete. Shipped in the `0.5.0` release line and present in the current stable release.
+Status: no active implementation slice remains after the `0.6.2` release was accepted as stable.
 
-Closeout evidence recorded 2026-06-27:
+- Workspace picker closeout is complete and recorded in the completion ledger under `Feature Slice: Drime Workspace Picker`.
+- Folder browser runtime AJAX verification is complete and recorded in the completion ledger under `Feature Slice: Drime Folder Browser And Destination Validator`.
+- Continuing E2E and failure hardening is complete for the current stable line; the remaining risky or external-service-dependent items are captured below as accepted hardening decisions.
 
-- Feature Light Review: passed as a source-evidence review of the `v0.5.0` workspace-picker surface. The feature touches admin UI, AJAX, settings persistence, and the Drime `/me/workspaces` API; it follows the existing settings/admin-page architecture and no significant non-security issues were found.
-- Feature Bloat And Structure Review: passed for the workspace-picker surface. The explicit historical boundary was `v0.4.0` to `v0.5.0`; the helper was run with `-BaseRef v0.4.0`, then the tag diff was sanity-checked against `v0.5.0`. Workspace-specific files are within feature-stage thresholds: `includes/class-workspace-browser.php` is `123` total lines, `assets/admin-workspaces.js` and `assets/src/admin/workspaces.js` are `147` total lines each, `tests/WorkspaceBrowserTest.php` is `91` total lines, and `tests/Support/WorkspaceBrowserClient.php` is `33` total lines. Oversized orchestration/test files reported by the current-state measurement predate or outlive the workspace picker and remain pre-release structure-review territory, not workspace closeout blockers.
-- Feature UI/UX Implementation Review: passed by source review against the design-system guide. The workspace picker uses the existing WordPress settings table, a native button/select/input pattern, visible loading state, `aria-busy`, spinner state, and an `aria-live` status region. It clears selected base-folder metadata when the workspace changes and tells the administrator to save settings.
-- Feature Security Review: passed. The workspace AJAX action uses the shared `verify_ajax_action()` gate, which requires `manage_options` and `check_ajax_referer( 'alynt_drime_wpvivid_folder_browser', 'nonce', false )`; settings sanitization clears stale folder metadata on workspace changes; workspace responses are normalized through `Alynt_Drime_WPvivid_Uploader_Workspace_Browser` and do not return `api_token`.
-- Documentation Sync Audit: passed for the workspace picker. `README.md`, `readme.txt`, `docs/SETTINGS.md`, and `CHANGELOG.md` document workspace loading, workspace ID behavior, and base-folder clearing when the workspace changes.
-- Release verification: current source validation passed with `npm.cmd test` (`86` tests, `238` assertions), `npm.cmd run lint` (`43 / 43` PHPCS files), and `npm.cmd run build`.
-- Novamira MCP availability was confirmed on `plugin-tester.local`; no LocalWP state changes or live-site operations were needed for this documentation closeout.
-
-### 2. Folder Browser Runtime AJAX Verification
-
-Status: complete. Shipped in the `0.4.0` release line and present in the current stable release.
-
-Runtime evidence recorded 2026-06-27 on `plugin-tester.local` with Novamira MCP:
-
-- The installed runtime is Alynt Drime WPvivid Uploader `0.6.2` with a saved Drime token present.
-- `alynt_drime_wpvivid_list_folders` rejected an unauthenticated/unauthorized runtime dispatch with `success=false` and the permission message.
-- `alynt_drime_wpvivid_list_folders` rejected an administrator dispatch with an invalid nonce with `success=false` and the nonce-verification message.
-- `alynt_drime_wpvivid_list_folders` accepted an administrator dispatch with a valid nonce and returned `success=true` with `folders` and `page` keys.
-- `alynt_drime_wpvivid_preview_destination` rejected an unauthenticated/unauthorized runtime dispatch with `success=false` and the permission message.
-- `alynt_drime_wpvivid_preview_destination` rejected an administrator dispatch with an invalid nonce with `success=false` and the nonce-verification message.
-- `alynt_drime_wpvivid_preview_destination` accepted an administrator dispatch with a valid nonce and returned a sanitized Drime error for the currently saved destination (`No query results for model [App\Folder] 759829073`) because the saved base folder could not be resolved during the probe.
-- All six captured JSON responses were inspected in-process against the saved Drime token; none contained the token.
-- The successful folder-list response and the destination-preview response were also checked for common sensitive markers such as `api_token`, `authorization`, `bearer`, `password`, `secret`, and `presigned`; none were found.
-- No LocalWP settings, database rows, files, or live-site resources were changed during this verification.
-
-### 3. Continuing E2E And Failure Hardening
-
-Status: mostly complete; duplicate handling with cached concrete parent IDs is freshly verified. Remaining items are intentionally narrow, risky, or external-service-dependent.
-
-Evidence recorded 2026-06-27:
+### 2. Current E2E Evidence
 
 - Duplicate-validation evidence is current for Drime uploads that use cached concrete parent folder IDs. On `plugin-tester.local`, the saved base folder was `759829073`, the saved relative path was `/plugin-tester.local`, and the registry cache resolved the final concrete parent folder to `762160507`. A non-uploading Drime `/uploads/validate` probe against existing uploaded file `alynt-chunk-validation-64mb-20260622-190700.zip` returned one duplicate under parent `762160507`; a generated unique probe name under the same parent returned zero duplicates. The local plugin option fingerprint was unchanged before and after the probe.
 
-Accepted hardening decisions:
+### 3. Accepted Hardening Decisions
 
 - Relative-path-only duplicate-validation variants remain documented as unreliable. Current Drime evidence shows duplicate detection is reliable when the resolved concrete destination folder is sent as top-level `parentId`, so the plugin should continue using cached concrete parent folder IDs after relative-path uploads. Do not spend more implementation energy on relative-path-only duplicate detection unless Drime API behavior changes or new evidence appears.
 - Live Drime rate-limit induction remains deferred as an accepted safety decision. HTTP `429` handling already has unit/regression coverage and upload preflight failures stop before duplicate validation or byte upload. Do not intentionally trigger Drime rate limits during routine validation; revisit only for a specific incident or explicit approval where controlled probing is necessary.
@@ -257,8 +230,8 @@ Accepted hardening decisions:
 
 Needed:
 
-- Keep this active roadmap short and decision-oriented.
-- Move completed slice detail into the completion ledger below instead of leaving it as active work.
+- Keep this active roadmap short and decision-oriented. Completed for the 2026-06-27 hygiene pass.
+- Move completed slice detail into the completion ledger below instead of leaving it as active work. Completed for the 2026-06-27 hygiene pass.
 - Keep `CHANGELOG.md`, `readme.txt`, `README.md`, `docs/SETTINGS.md`, `docs/DRIME_API_RESEARCH.md`, and the toolkit pre-release checklist aligned whenever a new release changes behavior.
 
 ## Completed Implementation Ledger
@@ -488,6 +461,14 @@ Open decisions before implementation:
 
 Status: implemented in source. PHPUnit, PHPCS, build verification, and LocalWP/Drime runtime E2E are complete.
 
+Runtime AJAX verification closeout recorded 2026-06-27 on `plugin-tester.local` with Novamira MCP:
+
+- The installed runtime was Alynt Drime WPvivid Uploader `0.6.2` with a saved Drime token present.
+- `alynt_drime_wpvivid_list_folders` rejected unauthenticated/unauthorized runtime dispatch and invalid-nonce administrator dispatches, then accepted an administrator dispatch with a valid nonce and returned `success=true` with `folders` and `page` keys.
+- `alynt_drime_wpvivid_preview_destination` rejected unauthenticated/unauthorized runtime dispatch and invalid-nonce administrator dispatches, then accepted an administrator dispatch with a valid nonce and returned a sanitized Drime error for the currently saved destination because the saved base folder could not be resolved during the probe.
+- All captured JSON responses were inspected against the saved Drime token and common sensitive markers such as `api_token`, `authorization`, `bearer`, `password`, `secret`, and `presigned`; none were found.
+- No LocalWP settings, database rows, files, or live-site resources were changed during this verification.
+
 Goal:
 
 - Let administrators browse existing Drime folders directly from the plugin settings page instead of manually extracting folder IDs from Drime URLs.
@@ -601,7 +582,17 @@ Implementation decisions:
 
 ### Feature Slice: Drime Workspace Picker
 
-Status: shipped in the `0.5.0` release line and present in the current stable release. Remaining closeout bookkeeping is tracked in the Active Roadmap.
+Status: shipped in the `0.5.0` release line and present in the current stable release. Closeout bookkeeping is complete.
+
+Closeout evidence recorded 2026-06-27:
+
+- Feature Light Review: passed as a source-evidence review of the `v0.5.0` workspace-picker surface. The feature touches admin UI, AJAX, settings persistence, and the Drime `/me/workspaces` API; it follows the existing settings/admin-page architecture and no significant non-security issues were found.
+- Feature Bloat And Structure Review: passed for the workspace-picker surface. The explicit historical boundary was `v0.4.0` to `v0.5.0`; the helper was run with `-BaseRef v0.4.0`, then the tag diff was sanity-checked against `v0.5.0`. Workspace-specific files are within feature-stage thresholds: `includes/class-workspace-browser.php` is `123` total lines, `assets/admin-workspaces.js` and `assets/src/admin/workspaces.js` are `147` total lines each, `tests/WorkspaceBrowserTest.php` is `91` total lines, and `tests/Support/WorkspaceBrowserClient.php` is `33` total lines. Oversized orchestration/test files reported by the current-state measurement predate or outlive the workspace picker and remain pre-release structure-review territory, not workspace closeout blockers.
+- Feature UI/UX Implementation Review: passed by source review against the design-system guide. The workspace picker uses the existing WordPress settings table, a native button/select/input pattern, visible loading state, `aria-busy`, spinner state, and an `aria-live` status region. It clears selected base-folder metadata when the workspace changes and tells the administrator to save settings.
+- Feature Security Review: passed. The workspace AJAX action uses the shared `verify_ajax_action()` gate, which requires `manage_options` and `check_ajax_referer( 'alynt_drime_wpvivid_folder_browser', 'nonce', false )`; settings sanitization clears stale folder metadata on workspace changes; workspace responses are normalized through `Alynt_Drime_WPvivid_Uploader_Workspace_Browser` and do not return `api_token`.
+- Documentation Sync Audit: passed for the workspace picker. `README.md`, `readme.txt`, `docs/SETTINGS.md`, and `CHANGELOG.md` document workspace loading, workspace ID behavior, and base-folder clearing when the workspace changes.
+- Release verification: current source validation passed with `npm.cmd test` (`86` tests, `238` assertions), `npm.cmd run lint` (`43 / 43` PHPCS files), and `npm.cmd run build`.
+- Novamira MCP availability was confirmed on `plugin-tester.local`; no LocalWP state changes or live-site operations were needed for this documentation closeout.
 
 Goal:
 
