@@ -250,10 +250,10 @@ Evidence recorded 2026-06-27:
 Accepted hardening decisions:
 
 - Relative-path-only duplicate-validation variants remain documented as unreliable. Current Drime evidence shows duplicate detection is reliable when the resolved concrete destination folder is sent as top-level `parentId`, so the plugin should continue using cached concrete parent folder IDs after relative-path uploads. Do not spend more implementation energy on relative-path-only duplicate detection unless Drime API behavior changes or new evidence appears.
+- Live Drime rate-limit induction remains deferred as an accepted safety decision. HTTP `429` handling already has unit/regression coverage and upload preflight failures stop before duplicate validation or byte upload. Do not intentionally trigger Drime rate limits during routine validation; revisit only for a specific incident or explicit approval where controlled probing is necessary.
 
 Still deferred:
 
-- Do not force live Drime rate-limit induction unless there is a specific need and explicit approval.
 - Keep broader arbitrary-folder remote cleanup out of scope for the current retention feature.
 
 ### 4. Plan Hygiene
@@ -713,7 +713,7 @@ Verified:
 Follow-up edge cases:
 
 - Duplicate handling against existing Drime files is current for cached concrete parent-folder IDs. Local registry prevention is verified, earlier remote duplicate-skip behavior was validated using a copied backup with the same basename and cached top-level `parentId`, and the 2026-06-27 non-uploading runtime probe confirmed Drime duplicate validation returns one duplicate for an existing uploaded name under cached concrete parent `762160507` and zero duplicates for a generated unique name under that same parent. Relative-path-only request variants remain unreliable by accepted decision, not an active implementation target.
-- Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains untested to avoid abusive API traffic.
+- Malformed multipart failure shapes have unit coverage for create/sign response failures; HTTP `429` rate-limit behavior has unit coverage. Live rate-limit induction remains intentionally deferred by accepted safety decision to avoid abusive API traffic; revisit only for a specific incident or explicit approval.
 - Live Remote Drime Retention cleanup has been verified once against the approved leftover E2E test upload; broader arbitrary-folder cleanup is intentionally out of scope for this feature.
 
 Use `plugin-tester local-only` after the confirmation gate.
@@ -745,7 +745,7 @@ Test:
 - missing local file after queueing
 - interrupted multipart upload
 - Drime API error
-- malformed Drime response (multipart create/sign response and HTTP `429` unit coverage added; broader live malformed/rate-limit cases pending if safe)
+- malformed Drime response (multipart create/sign response and HTTP `429` unit coverage added; broader live malformed cases pending if safe, live rate-limit induction intentionally deferred unless explicitly approved for a specific incident)
 - duplicate remote filename
 - disabled diagnostics
 - diagnostics export and clear actions

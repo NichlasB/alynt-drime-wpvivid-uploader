@@ -119,7 +119,7 @@ Live API checks were run on 2026-06-20 from `plugin-tester.local` using a user-p
 
 ## Still Unverified
 
-- Malformed multipart create/sign response handling has unit coverage; HTTP `429` rate-limit handling has unit coverage. Broader live malformed payload shapes and live rate-limit payload shapes still need live testing if a safe, non-abusive trigger becomes available.
+- Malformed multipart create/sign response handling has unit coverage; HTTP `429` rate-limit handling has unit coverage. Broader live malformed payload shapes still need live testing if a safe trigger becomes available. Live rate-limit induction is intentionally deferred unless a specific incident requires it and the user explicitly approves controlled, non-abusive probing.
 - Duplicate validation for relative-path-only workflows is not reliable from current live evidence; the plugin now works around this after the first successful relative-path upload by caching and reusing the resolved Drime parent folder ID.
 - Direct small-file upload still uses PHP cURL because WordPress HTTP API does not natively model multipart/form-data file uploads cleanly.
 - Fresh multipart upload, interrupted multipart resume, remote multipart abort on manual active-state clear, invalid-token auth failure, and invalid-token retry handling are live-validated.
