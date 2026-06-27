@@ -4,7 +4,7 @@ Tags: backup, wpvivid, drime
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,9 @@ No public custom actions or filters are exposed.
 
 = Unreleased =
 
+= 0.6.2 =
+* Fixed failed-upload email redaction so Unix-style absolute server paths are not exposed in notification reasons.
+
 = 0.6.1 =
 * Improved selected-base relative-path uploads so transient Drime child-folder lookup failures fall back to broader folder-tree matching before creating missing folders.
 * Verified WPvivid split-backup upload behavior and selected-base relative-path upload resolution on `plugin-tester.local`.
@@ -111,6 +114,9 @@ No public custom actions or filters are exposed.
 * Initial development release with Drime settings, WPvivid local scanner, queue/registry storage, direct and multipart uploads, duplicate handling, retry limits, diagnostics, uninstall cleanup, and build/test tooling.
 
 == Upgrade Notice ==
+
+= 0.6.2 =
+Improves failed-upload email redaction for Linux/GridPane server paths. No breaking changes.
 
 = 0.6.1 =
 Improves Drime relative-path destination resolution for selected base folders. No breaking changes.
